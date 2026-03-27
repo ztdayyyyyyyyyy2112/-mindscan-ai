@@ -1,0 +1,30 @@
+# Node
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+
+# Env files (never commit real secrets)
+.env*
+!.env.example
+backend/.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database (auto-created at runtime)
+*.db
+*.sqlite3
+
+# ML model artifacts (large binary files — regenerate from training)
+# Uncomment the lines below to exclude model files from git
+# *.pkl
+
+# IDE settings
+.idea/

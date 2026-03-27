@@ -1,0 +1,131 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
+
+from ..database import get_db
+from ..models import Session, Response, Prediction, Recommendation
+from ..schemas import SessionResponse, SurveyInput, SurveySubmissionResponse, HistoryResponse, RecommendationResponse
+from ..services.ml_service import predict_stress
+from ..services.recommendation_service import generate_recommendations
+import json
+
+router = APIRouter(prefix="/api", tags=["User Endpoints"])
+
+@router.post("/session", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_session(db: AsyncSession = Depends(get_db)):
+    new_session = Session()
+    db.add(new_session)
+    await db.commit()
+    await db.refresh(new_session)
+    return new_session
+
+@router.post("/predict", response_model=SurveySubmissionResponse)
+async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: AsyncSession = Depends(get_db)):
+    # 1. Verify session exists
+    result = await db.execute(select(Session).filter(Session.session_id == session_id))
+    db_session = result.scalars().first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # 2. Get predictions from ML service
+    try:
+        ml_result = predict_stress(survey.model_dump())
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e)) # Service Unavailable if ML errors
+
+    stress_level = ml_result["stress_level"]
+    confidence_score = ml_result["confidence_score"]
+
+    # 3. Create database records inside a transaction block
+    # Note: Ensure order is correct
+    new_response = Response(
+        session_id=session_id,
+        age=survey.age,
+        gender=survey.gender,
+        cgpa=survey.cgpa,
+        sleep_hours=survey.sleep_hours,
+        study_hours=survey.study_hours,
+        social_activity=survey.social_activity,
+        physical_activity=survey.physical_activity,
+        academic_pressure=survey.academic_pressure,
+        financial_stress=survey.financial_stress,
+        mental_health_history=survey.mental_health_history,
+        extra_features=json.dumps(survey.extra_features) if survey.extra_features else None
+    )
+    db.add(new_response)
+    await db.flush() # flush to get response_id
+
+    prediction = Prediction(
+        response_id=new_response.response_id,
+        stress_level=stress_level,
+        confidence_score=confidence_score
+    )
+    db.add(prediction)
+    await db.flush() # flush to get pred_id
+
+    # 4. Generate recommendations based on rule engine
+    rec_data = generate_recommendations(survey.model_dump(), stress_level)
+    rec_objects = []
+    
+    for r in rec_data:
+        reco = Recommendation(
+            pred_id=prediction.pred_id,
+            category=r["category"],
+            title=r["title"],
+            description=r["description"]
+        )
+        db.add(reco)
+        rec_objects.append(reco)
+        
+    await db.commit()
+    
+    # Reload the inserted data to fully format the response
+    await db.refresh(prediction)
+    # the relationship won't be hydrated cleanly via await refresh directly on objects without explicit loading,
+    # so we manually craft the return using the flushed objects.
+
+    return {
+        "session_id": session_id,
+        "prediction": {
+            "pred_id": prediction.pred_id,
+            "stress_level": prediction.stress_level,
+            "confidence_score": prediction.confidence_score,
+            "feature_importance": ml_result.get("feature_importance", {}),
+            "recommendations": rec_objects
+        }
+    }
+
+
+@router.get("/recommend/{pred_id}", response_model=list[RecommendationResponse])
+async def get_recommendations(pred_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Recommendation).filter(Recommendation.pred_id == pred_id))
+    recs = result.scalars().all()
+    if not recs:
+        raise HTTPException(status_code=404, detail="Recommendations not found for this prediction")
+    return recs
+
+
+@router.get("/history/{session_id}") # Will implement dedicated response model mapping if needed
+async def get_history(session_id: str, db: AsyncSession = Depends(get_db)):
+    # Fetch all Responses and associated Predictions tied to the Session
+    result = await db.execute(
+        select(Session)
+        .options(selectinload(Session.responses).selectinload(Response.prediction).selectinload(Prediction.recommendations))
+        .filter(Session.session_id == session_id)
+    )
+    session_obj = result.scalars().first()
+    
+    if not session_obj:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    predictions = []
+    for resp in session_obj.responses:
+        if resp.prediction:
+            predictions.append(resp.prediction)
+
+    return {
+        "session_id": session_obj.session_id,
+        "created_at": session_obj.created_at,
+        "predictions": predictions
+    }
