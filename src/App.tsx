@@ -127,7 +127,7 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
   );
 };
 
-const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmarked, onBookmark }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, key?: string }) => {
+const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, key?: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -148,7 +148,7 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
         <button 
           onClick={onBookmark}
           className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isBookmarked ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
-          aria-label="Lưu gợi ý"
+          aria-label={bookmarkAriaLabel}
         >
           {isBookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
         </button>
@@ -430,10 +430,20 @@ export default function App() {
         <p>{t('consent.p1')}</p>
         
         <h3 className="font-bold text-gray-900 mt-4">{t('consent.h2')}</h3>
-        <p dangerouslySetInnerHTML={{ __html: t('consent.p2').replace('ẩn danh', '<strong>ẩn danh</strong>').replace('anonymously', '<strong>anonymously</strong>') }} />
+        <p dangerouslySetInnerHTML={{ __html: t('consent.p2')
+          .replace('ẩn danh', '<strong>ẩn danh</strong>')
+          .replace('anonymously', '<strong>anonymously</strong>')
+          .replace('absolut anonym', '<strong>absolut anonym</strong>')
+          .replace('完全匿名', '<strong>完全匿名</strong>') 
+        }} />
         
         <h3 className="font-bold text-gray-900 mt-4">{t('consent.h3')}</h3>
-        <p dangerouslySetInnerHTML={{ __html: t('consent.p3').replace('Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.', '<strong>Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.</strong>').replace('Results do not substitute medical diagnoses or professional psychiatric advice.', '<strong>Results do not substitute medical diagnoses or professional psychiatric advice.</strong>') }} />
+        <p dangerouslySetInnerHTML={{ __html: t('consent.p3')
+          .replace('Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.', '<strong>Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.</strong>')
+          .replace('Results do not substitute medical diagnoses or professional psychiatric advice.', '<strong>Results do not substitute medical diagnoses or professional psychiatric advice.</strong>')
+          .replace('Ergebnisse ersetzen keine ärztliche Diagnose.', '<strong>Ergebnisse ersetzen keine ärztliche Diagnose.</strong>')
+          .replace('结果不能代替医学诊断。', '<strong>结果不能代替医学诊断。</strong>')
+        }} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-end">
@@ -1091,6 +1101,7 @@ export default function App() {
                               icon={Icon}
                               colorClass={colorClass}
                               isBookmarked={bookmarkedRecs.includes(rec.id)}
+                              bookmarkAriaLabel={t('results.saveRec')}
                               onBookmark={(e) => {
                                 e.stopPropagation();
                                 toggleBookmark(rec.id);

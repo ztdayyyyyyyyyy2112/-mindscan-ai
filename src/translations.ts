@@ -134,7 +134,8 @@ export const translations = {
       consentConfirmed: "Informed Consent confirmed.",
       btnHome: "Quay lại trang chủ",
       errorTitle: "Đã có lỗi xảy ra",
-      errorDesc: "Không thể phân tích dữ liệu lúc này. Vui lòng thử lại sau."
+      errorDesc: "Không thể phân tích dữ liệu lúc này. Vui lòng thử lại sau.",
+      saveRec: "Lưu gợi ý"
     },
     emergency: {
       title: "Cảnh báo Khẩn cấp",
@@ -272,7 +273,8 @@ export const translations = {
       consentConfirmed: "Informed Consent confirmed.",
       btnHome: "Return to Home",
       errorTitle: "An Error Occurred",
-      errorDesc: "Unable to analyze data at this time. Please try again later."
+      errorDesc: "Unable to analyze data at this time. Please try again later.",
+      saveRec: "Save action"
     },
     emergency: {
       title: "Emergency Alert",
@@ -410,7 +412,8 @@ export const translations = {
       consentConfirmed: "Informed Consent bestätigt.",
       btnHome: "Zur Startseite",
       errorTitle: "Ein Fehler ist aufgetreten",
-      errorDesc: "Daten können momentan nicht analysiert werden. Bitte versuchen Sie es später erneut."
+      errorDesc: "Daten können momentan nicht analysiert werden. Bitte versuchen Sie es später erneut.",
+      saveRec: "Aktion speichern"
     },
     emergency: {
       title: "Notfallmeldung",
@@ -548,7 +551,8 @@ export const translations = {
       consentConfirmed: "已确认知情同意书。",
       btnHome: "返回主页",
       errorTitle: "发生了错误",
-      errorDesc: "目前无法分析数据。请稍后再试一次。"
+      errorDesc: "目前无法分析数据。请稍后再试一次。",
+      saveRec: "保存建议"
     },
     emergency: {
       title: "紧急警报",
