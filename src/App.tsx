@@ -1120,42 +1120,42 @@ export default function App() {
             <section id="solutions" className="py-24 relative z-10">
               <div className="container mx-auto px-6">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                  <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0b132b]">{t('solutions.title')}</h2>
-                  <p className="text-gray-500 text-lg">
+                  <h2 className={`text-3xl lg:text-4xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.title')}</h2>
+                  <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {t('solutions.subtitle')}
                   </p>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8">
                   {/* Card 1 */}
-                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                  <div className={`relative backdrop-blur-3xl border shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 transition-all duration-300 ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10 hover:bg-[#0b132b]/80' : 'bg-white/20 border-white/40 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]'}`}>
                     <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-600 flex items-center justify-center mb-6 border border-blue-200/50">
                       <BarChart2 className="w-6 h-6" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card1Title')}</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card1Title')}</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {t('solutions.card1Text')}
                     </p>
                   </div>
 
                   {/* Card 2 */}
-                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                  <div className={`relative backdrop-blur-3xl border shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 transition-all duration-300 ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10 hover:bg-[#0b132b]/80' : 'bg-white/20 border-white/40 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]'}`}>
                     <div className="w-12 h-12 rounded-xl bg-green-500/20 text-green-600 flex items-center justify-center mb-6 border border-green-200/50">
                       <Leaf className="w-6 h-6" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card2Title')}</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card2Title')}</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {t('solutions.card2Text')}
                     </p>
                   </div>
 
                   {/* Card 3 */}
-                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                  <div className={`relative backdrop-blur-3xl border shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 transition-all duration-300 ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10 hover:bg-[#0b132b]/80' : 'bg-white/20 border-white/40 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]'}`}>
                     <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-600 flex items-center justify-center mb-6 border border-purple-200/50">
                       <HeartHandshake className="w-6 h-6" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card3Title')}</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card3Title')}</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {t('solutions.card3Text')}
                     </p>
                   </div>
@@ -1277,14 +1277,14 @@ export default function App() {
             className="container mx-auto px-6 py-12 max-w-3xl"
           >
             {!isCompleted ? (
-              <div className="relative bg-white/25 backdrop-blur-3xl border border-white/40 shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12">
+              <div className={`relative backdrop-blur-3xl border shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12 ${isDarkMode ? 'bg-[#0b132b]/80 border-white/10' : 'bg-white/25 border-white/40'}`}>
                 {/* Progress Bar */}
                 <div className="mb-12">
-                  <div className="flex justify-between text-sm font-medium text-gray-500 mb-3">
+                  <div className={`flex justify-between text-sm font-medium mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <span>{t('survey.step')} {currentStep} / 5</span>
                     <span>{Math.round((currentStep / 5) * 100)}% {t('survey.completed')}</span>
                   </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     <motion.div 
                       className="h-full bg-blue-600 rounded-full"
                       initial={{ width: `${((currentStep - 1) / 5) * 100}%` }}
@@ -1308,18 +1308,18 @@ export default function App() {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="mt-8 pt-8 border-t border-gray-200 flex items-center justify-between">
+                <div className={`mt-8 pt-8 border-t flex items-center justify-between ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                   <button 
                     onClick={prevStep}
                     aria-label={t('survey.btnPrev')}
-                    className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    className={`flex items-center gap-2 font-medium px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/10 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:ring-blue-600 focus:ring-offset-white'}`}
                   >
                     <ArrowLeft className="w-5 h-5" aria-hidden="true" /> {t('survey.btnPrev')}
                   </button>
                   <button 
                     onClick={nextStep}
                     aria-label={currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')}
-                    className="relative overflow-hidden group px-8 py-3 rounded-full font-semibold bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.15)] hover:bg-white/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    className={`relative overflow-hidden group px-8 py-3 rounded-full font-semibold backdrop-blur-2xl transition-all duration-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'bg-white/30 text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.15)] hover:bg-white/50 focus:ring-blue-600 focus:ring-offset-white'}`}
                   >
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     {currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')} <ArrowRight className="w-5 h-5" aria-hidden="true" />
