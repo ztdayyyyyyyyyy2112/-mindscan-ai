@@ -33,12 +33,6 @@ import {
   Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  PieChart, Pie, Cell, 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar
-} from 'recharts';
 import { analyzeSurveyData, AIRecommendation } from './services/geminiService';
 import { translations } from './translations';
 
@@ -174,10 +168,14 @@ export default function App() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<AIRecommendation | null>(null);
-  const [bookmarkedRecs, setBookmarkedRecs] = useState<string[]>([]);
+  const [bookmarkedRecs, setBookmarkedRecs] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('mindscan_bookmarks') || '[]'); } catch { return []; }
+  });
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<any[]>([]);
   const [sessionId, setSessionId] = useState<string>('');
+  const [showAllRecs, setShowAllRecs] = useState(false);
+  const [stepError, setStepError] = useState<string>('');
   
   // Translation helper
   const t = (key: string): string => {
@@ -301,12 +299,37 @@ export default function App() {
   };
 
   const toggleBookmark = (id: string) => {
-    setBookmarkedRecs(prev => 
-      prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]
-    );
+    setBookmarkedRecs(prev => {
+      const next = prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id];
+      localStorage.setItem('mindscan_bookmarks', JSON.stringify(next));
+      return next;
+    });
   };
 
   const nextStep = async () => {
+    // Validate required fields on step 1
+    if (currentStep === 1) {
+      const age = parseInt(formData.age as any);
+      if (!formData.age || isNaN(age) || age < 10 || age > 100) {
+        setStepError(
+          language === 'vi' ? 'Vui lòng nhập tuổi hợp lệ (10–100).' :
+          language === 'de' ? 'Bitte geben Sie ein gültiges Alter ein (10–100).' :
+          language === 'zh' ? '请输入有效年龄（10–100岁）。' :
+          'Please enter a valid age (10–100).'
+        );
+        return;
+      }
+      if (!formData.gender) {
+        setStepError(
+          language === 'vi' ? 'Vui lòng chọn giới tính.' :
+          language === 'de' ? 'Bitte wählen Sie Ihr Geschlecht aus.' :
+          language === 'zh' ? '请选择您的性别。' :
+          'Please select your gender.'
+        );
+        return;
+      }
+    }
+    setStepError('');
     if (currentStep < 5) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -661,35 +684,37 @@ export default function App() {
             </nav>
           )}
         </div>
-        {!isSurveyOpen && (
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('nav.signIn')}</a>
-            <button 
-              onClick={() => setIsSurveyOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              {t('nav.getStarted')}
-            </button>
-            
-            <div className="relative flex items-center bg-white border border-gray-200 shadow-sm rounded-full pl-3 pr-8 py-2 hover:shadow-md transition-shadow cursor-pointer group">
-              <Globe className="w-4 h-4 text-gray-500 mr-2 group-hover:text-blue-600 transition-colors" />
-              <select 
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as any)}
-                className="bg-transparent text-sm font-medium text-gray-700 outline-none cursor-pointer appearance-none absolute inset-0 opacity-0 w-full h-full"
+        <div className="flex items-center gap-4">
+          {!isSurveyOpen && (
+            <>
+              <a href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('nav.signIn')}</a>
+              <button 
+                onClick={() => setIsSurveyOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                <option value="vi">Tiếng Việt</option>
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-                <option value="zh">中文</option>
-              </select>
-              <span className="text-sm font-medium text-gray-700 select-none pointer-events-none">
-                {language === 'vi' ? 'VI' : language === 'en' ? 'EN' : language === 'de' ? 'DE' : 'ZH'}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 pointer-events-none group-hover:text-blue-600 transition-colors" />
-            </div>
+                {t('nav.getStarted')}
+              </button>
+            </>
+          )}
+          {/* Language switcher — always visible */}
+          <div className="relative flex items-center bg-white border border-gray-200 shadow-sm rounded-full pl-3 pr-8 py-2 hover:shadow-md transition-shadow cursor-pointer group">
+            <Globe className="w-4 h-4 text-gray-500 mr-2 group-hover:text-blue-600 transition-colors" />
+            <select 
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as any)}
+              className="bg-transparent text-sm font-medium text-gray-700 outline-none cursor-pointer appearance-none absolute inset-0 opacity-0 w-full h-full"
+            >
+              <option value="vi">Tiếng Việt</option>
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="zh">中文</option>
+            </select>
+            <span className="text-sm font-medium text-gray-700 select-none pointer-events-none">
+              {language === 'vi' ? 'VI' : language === 'en' ? 'EN' : language === 'de' ? 'DE' : 'ZH'}
+            </span>
+            <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 pointer-events-none group-hover:text-blue-600 transition-colors" />
           </div>
-        )}
+        </div>
       </header>
 
       <AnimatePresence mode="wait">
@@ -957,18 +982,26 @@ export default function App() {
                   {renderStepContent()}
                 </AnimatePresence>
 
+                {/* Validation error banner */}
+                {stepError && (
+                  <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 px-4 py-3 rounded-xl">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    {stepError}
+                  </div>
+                )}
+
                 {/* Navigation Buttons */}
-                <div className="mt-12 pt-8 border-t border-gray-200 flex items-center justify-between">
+                <div className="mt-8 pt-8 border-t border-gray-200 flex items-center justify-between">
                   <button 
                     onClick={prevStep}
-                    aria-label="Quay lại bước trước"
+                    aria-label={t('survey.btnPrev')}
                     className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   >
                     <ArrowLeft className="w-5 h-5" aria-hidden="true" /> {t('survey.btnPrev')}
                   </button>
                   <button 
                     onClick={nextStep}
-                    aria-label={currentStep === 5 ? 'Hoàn thành khảo sát' : 'Tiếp tục bước tiếp theo'}
+                    aria-label={currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')}
                     className="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   >
                     {currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')} <ArrowRight className="w-5 h-5" aria-hidden="true" />
@@ -991,7 +1024,7 @@ export default function App() {
                     
                     {/* 1. Biểu đồ Gauge */}
                     <div className="mb-12 flex flex-col items-center">
-                      <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} />
+                      <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} />
                     </div>
 
                     {/* 2. Biểu đồ Stacked Bar - Yếu tố tác động */}
@@ -1034,19 +1067,20 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* 4. Action Cards */}
+                    {/* 4. Action Cards — icon mapped by language-agnostic categoryKey */}
                     <div className="mb-12">
                       <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">{t('results.recsTitle')}</h3>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {aiResult.recommendations.slice(0, 4).map((rec, idx) => {
-                          let Icon = Moon;
-                          let colorClass = 'bg-green-100 text-green-600';
-                          
-                          if (rec.category === 'Giấc ngủ') { Icon = Moon; colorClass = 'bg-[#a7f3d0] text-[#047857]'; }
-                          else if (rec.category === 'Học tập') { Icon = BookOpen; colorClass = 'bg-[#99f6e4] text-[#0f766e]'; }
-                          else if (rec.category === 'Xã hội') { Icon = Users; colorClass = 'bg-[#e9d5ff] text-[#7e22ce]'; }
-                          else if (rec.category === 'Thể dục' || rec.category === 'Thể chất') { Icon = Activity; colorClass = 'bg-[#e2e8f0] text-[#334155]'; }
-                          else if (rec.category === 'Tài chính') { Icon = DollarSign; colorClass = 'bg-[#fecdd3] text-[#be123c]'; }
+                        {(showAllRecs ? aiResult.recommendations : aiResult.recommendations.slice(0, 4)).map((rec, idx) => {
+                          const key = (rec as any).categoryKey || '';
+                          let Icon = Brain;
+                          let colorClass = 'bg-blue-100 text-blue-600';
+                          if (key === 'sleep')    { Icon = Moon;        colorClass = 'bg-[#a7f3d0] text-[#047857]'; }
+                          else if (key === 'study')   { Icon = BookOpen;    colorClass = 'bg-[#99f6e4] text-[#0f766e]'; }
+                          else if (key === 'social')  { Icon = Users;       colorClass = 'bg-[#e9d5ff] text-[#7e22ce]'; }
+                          else if (key === 'exercise'){ Icon = Activity;    colorClass = 'bg-[#e2e8f0] text-[#334155]'; }
+                          else if (key === 'finance') { Icon = DollarSign;  colorClass = 'bg-[#fecdd3] text-[#be123c]'; }
+                          else if (key === 'mental')  { Icon = HeartHandshake; colorClass = 'bg-purple-100 text-purple-600'; }
 
                           return (
                             <ActionCard 
@@ -1065,6 +1099,20 @@ export default function App() {
                           );
                         })}
                       </div>
+                      {/* Show more / show less toggle */}
+                      {aiResult.recommendations.length > 4 && (
+                        <div className="text-center mt-6">
+                          <button
+                            onClick={() => setShowAllRecs(prev => !prev)}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm underline underline-offset-4"
+                          >
+                            {showAllRecs
+                              ? (language === 'vi' ? 'Thu gọn' : language === 'de' ? 'Weniger anzeigen' : language === 'zh' ? '收起' : 'Show less')
+                              : (language === 'vi' ? `Xem thêm ${aiResult.recommendations.length - 4} gợi ý` : language === 'de' ? `${aiResult.recommendations.length - 4} weitere anzeigen` : language === 'zh' ? `查看更多 ${aiResult.recommendations.length - 4} 条建议` : `Show ${aiResult.recommendations.length - 4} more`)
+                            }
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* 5. Disclaimer & Quyền riêng tư */}
@@ -1083,6 +1131,7 @@ export default function App() {
                           setIsCompleted(false);
                           setCurrentStep(1);
                           setAiResult(null);
+                          setShowAllRecs(false);
                         }}
                         className="text-gray-500 hover:text-gray-800 font-medium underline underline-offset-4"
                       >
@@ -1107,7 +1156,7 @@ export default function App() {
                       }}
                       className="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors"
                     >
-                      Trở về trang chủ
+                      {t('results.btnHome')}
                     </button>
                   </div>
                 )}
