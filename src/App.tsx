@@ -907,7 +907,7 @@ export default function App() {
               <a href="#" className={`text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>{t('nav.signIn')}</a>
               <button 
                 onClick={() => setIsSurveyOpen(true)}
-                className="relative overflow-hidden rounded-full font-semibold px-6 py-2.5 text-sm transition-all duration-300 flex items-center gap-2 group bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)] hover:bg-white/50 hover:shadow-[0_6px_24px_rgba(59,130,246,0.2)] hover:-translate-y-0.5"
+                className={`relative overflow-hidden rounded-full font-semibold px-6 py-2.5 text-sm transition-all duration-300 flex items-center gap-2 group border backdrop-blur-2xl ${isDarkMode ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-500 shadow-[0_4px_20px_rgba(59,130,246,0.3)] hover:shadow-[0_6px_24px_rgba(59,130,246,0.4)] hover:-translate-y-0.5' : 'bg-white/30 text-blue-700 border-white/50 hover:bg-white/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)] hover:shadow-[0_6px_24px_rgba(59,130,246,0.2)] hover:-translate-y-0.5'}`}
               >
                 <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 {t('nav.getStarted')}
@@ -1078,7 +1078,7 @@ export default function App() {
                 <div className="flex flex-wrap items-center gap-6 mb-16">
                   <button 
                     onClick={() => setIsSurveyOpen(true)}
-                    className="relative overflow-hidden rounded-full font-semibold px-8 py-4 transition-all duration-300 flex items-center gap-2 group bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.2)] hover:bg-white/50 hover:shadow-[0_12px_40px_rgba(59,130,246,0.25)] hover:-translate-y-1"
+                    className={`relative overflow-hidden rounded-full font-semibold px-8 py-4 transition-all duration-300 flex items-center gap-2 group border backdrop-blur-2xl ${isDarkMode ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-500 shadow-[0_8px_32px_rgba(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgba(59,130,246,0.4)] hover:-translate-y-1' : 'bg-white/30 text-blue-700 border-white/50 hover:bg-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.2)] hover:shadow-[0_12px_40px_rgba(59,130,246,0.25)] hover:-translate-y-1'}`}
                   >
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     {t('hero.btnStart')} <ArrowRight className="w-5 h-5" />
@@ -1120,16 +1120,7 @@ export default function App() {
                   <Leaf className="w-6 h-6" />
                 </div>
 
-                {/* Bottom Right Floating Card */}
-                <div className="absolute bottom-8 right-8 bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-5 rounded-2xl max-w-xs">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                      <Heart className="w-4 h-4 fill-current" />
-                    </div>
-                    <span className="text-xs font-bold tracking-wide text-gray-800">{t('hero.cardTitle')}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{t('hero.cardText')}</p>
-                </div>
+
               </div>
             </section>
 
