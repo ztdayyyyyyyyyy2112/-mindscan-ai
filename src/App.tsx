@@ -30,7 +30,9 @@ import {
   DollarSign,
   ChevronDown,
   Brain,
-  Globe
+  Globe,
+  Github,
+  Facebook
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Player } from '@lottiefiles/react-lottie-player';
@@ -1259,12 +1261,15 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <button className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-white/30 border border-white/40 text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <button className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-white/30 border border-white/40 text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
+                  <a href="https://github.com/24521450/-mindscan-ai" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-white/30 border border-white/40 text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
+                    <Github className="w-4 h-4" />
+                  </a>
+                  <a href="https://www.facebook.com/Hor1zoNnn/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-white/30 border border-white/40 text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                  <a href="mailto:24521450@gm.uit.edu.vn" aria-label="Email" className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-white/30 border border-white/40 text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
                     <Mail className="w-4 h-4" />
-                  </button>
+                  </a>
                 </div>
               </div>
             </footer>
