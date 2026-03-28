@@ -33,6 +33,7 @@ import {
   Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Player } from '@lottiefiles/react-lottie-player';
 import { analyzeSurveyData, AIRecommendation } from './services/geminiService';
 import { translations } from './translations';
 
@@ -132,7 +133,7 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
 
   return (
     <div 
-      className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 cursor-pointer relative"
+      className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-6 flex items-start gap-4 cursor-pointer hover:bg-white/30 hover:shadow-[0_12px_36px_rgba(0,0,0,0.08)] transition-all duration-300"
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>
@@ -140,19 +141,19 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
       </div>
       <div className="flex-1">
         <h4 className="text-lg font-bold text-gray-800 mb-1">{title}</h4>
-        <p className={`text-gray-500 text-sm transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
+        <p className={`text-gray-600 text-sm transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
           {description}
         </p>
       </div>
       <div className="flex flex-col items-center gap-2">
         <button 
           onClick={onBookmark}
-          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isBookmarked ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isBookmarked ? 'bg-blue-200/60 text-blue-600 border border-blue-200' : 'bg-white/30 text-gray-400 hover:bg-white/50 border border-white/30'}`}
           aria-label={bookmarkAriaLabel}
         >
           {isBookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
         </button>
-        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0 text-gray-400 hover:bg-gray-100 transition-colors">
+        <div className="w-8 h-8 rounded-full bg-white/30 border border-white/30 flex items-center justify-center shrink-0 text-gray-400 hover:bg-white/50 transition-all">
           <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
@@ -168,6 +169,10 @@ export default function App() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<AIRecommendation | null>(null);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showEthicsModal, setShowEthicsModal] = useState(false);
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [bookmarkedRecs, setBookmarkedRecs] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('mindscan_bookmarks') || '[]'); } catch { return []; }
   });
@@ -417,7 +422,7 @@ export default function App() {
   const renderConsentScreen = () => (
     <motion.div 
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-3xl shadow-xl p-8 md:p-12 max-w-3xl mx-auto text-left"
+      className="relative bg-white/25 backdrop-blur-3xl border border-white/40 shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl mx-auto text-left"
     >
       <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
         <ShieldCheck className="w-8 h-8" />
@@ -449,27 +454,120 @@ export default function App() {
       <div className="flex flex-col sm:flex-row gap-4 justify-end">
         <button 
           onClick={() => setIsSurveyOpen(false)}
-          className="px-6 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+          className="px-6 py-3 rounded-xl font-medium text-gray-600 bg-white/20 border border-white/30 hover:bg-white/30 transition-all backdrop-blur-sm"
         >
           {t('consent.btnDecline')}
         </button>
         <button 
           onClick={acceptConsent}
-          className="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
+          className="relative overflow-hidden group px-8 py-3 rounded-full font-semibold bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.2)] hover:bg-white/50 hover:-translate-y-0.5 transition-all duration-300"
         >
+          <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           {t('consent.btnAccept')}
         </button>
       </div>
     </motion.div>
   );
 
+  const renderHowItWorksModal = () => (
+    <AnimatePresence>
+      {isHowItWorksOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            className={`relative w-full max-w-5xl rounded-[2rem] overflow-hidden p-8 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border ${isDarkMode ? 'bg-[#0b132b]/80 border-white/10 text-white backdrop-blur-3xl' : 'bg-[#0b132b]/95 border-blue-900/50 text-white backdrop-blur-3xl'}`}
+          >
+            {/* Close button */}
+            <button 
+              onClick={() => setIsHowItWorksOpen(false)}
+              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <span className="text-xl">&times;</span>
+            </button>
+
+            <div className="text-center mb-12 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('tech.title')}</h2>
+              <p className="text-gray-300 text-lg leading-relaxed">{t('tech.subtitle')}</p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Side: 3 Features */}
+              <div className="space-y-8">
+                {/* Feature 1 */}
+                <div className="flex gap-6">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
+                    <Activity className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{t('tech.point1Title')}</h3>
+                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point1Text')}</p>
+                  </div>
+                </div>
+                {/* Feature 2 */}
+                <div className="flex gap-6">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{t('tech.point2Title')}</h3>
+                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point2Text')}</p>
+                  </div>
+                </div>
+                {/* Feature 3 */}
+                <div className="flex gap-6">
+                  <div className="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
+                    <Brain className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{t('tech.point3Title')}</h3>
+                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point3Text')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: Code Mockup */}
+              <div className="bg-[#1e293b] rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative mt-4 lg:mt-0">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                  <Lock className="w-4 h-4 text-blue-400" />
+                  <span className="font-semibold text-sm tracking-wide text-gray-200">{t('tech.modelTitle')}</span>
+                </div>
+
+                {/* Code Body */}
+                <div className="p-6 font-mono text-sm overflow-x-auto text-gray-300">
+                  <div className="flex gap-4"><span className="text-blue-400">model</span> <span className="text-gray-400">=</span> <span className="text-emerald-400">XGBClassifier</span><span className="text-gray-400">(</span></div>
+                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">n_estimators</span><span className="text-gray-400">=</span><span className="text-orange-300">200</span><span className="text-gray-400">,</span></div>
+                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">learning_rate</span><span className="text-gray-400">=</span><span className="text-orange-300">0.05</span><span className="text-gray-400">,</span></div>
+                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">max_depth</span><span className="text-gray-400">=</span><span className="text-orange-300">6</span><span className="text-gray-400">,</span></div>
+                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">objective</span><span className="text-gray-400">=</span><span className="text-green-300">'multi:softprob'</span></div>
+                  <div className="flex gap-4"><span className="text-gray-400">)</span></div>
+                  <div className="flex gap-4 mt-6"><span className="text-gray-500 italic">/* Đầu ra dự báo: LOW, MEDIUM, HIGH */</span></div>
+                </div>
+
+                {/* Footer Stats */}
+                <div className="px-6 py-5 border-t border-white/5 flex items-center justify-between bg-black/20">
+                  <span className="text-sm font-medium text-gray-400">{t('tech.modelAcc')}</span>
+                  <div className="bg-emerald-500/20 text-emerald-400 font-mono font-bold px-3 py-1 rounded text-sm border border-emerald-500/30">
+                    92.4%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+
   const renderEmergencyModal = () => (
     <AnimatePresence>
       {showEmergencyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 max-w-lg w-full text-center relative"
+            className="relative bg-white/30 backdrop-blur-3xl border border-white/50 shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-lg w-full text-center"
           >
             <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-10 h-10" />
@@ -682,11 +780,28 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] font-sans text-[#0b132b]">
+    <div className={`min-h-screen font-sans text-[#0b132b] relative overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'dark bg-gradient-to-br from-[#0a0f1e] via-[#0d1b3e] to-[#1a0a2e]' : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'}`}>
+      {/* Liquid Glass Background Blobs */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        {isDarkMode ? (
+          <>
+            <div className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] rounded-full filter blur-[120px] opacity-30 animate-blob bg-indigo-700" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full filter blur-[120px] opacity-20 animate-blob animation-delay-2000 bg-violet-900" />
+            <div className="absolute top-[40%] left-[40%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-15 animate-blob animation-delay-4000 bg-blue-900" />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] rounded-full filter blur-[120px] opacity-40 animate-blob bg-blue-400" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full filter blur-[120px] opacity-30 animate-blob animation-delay-2000 bg-violet-400" />
+            <div className="absolute top-[40%] left-[40%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-25 animate-blob animation-delay-4000 bg-teal-300" />
+          </>
+        )}
+      </div>
       {/* Header */}
-      <header className="container mx-auto px-6 py-6 flex items-center justify-between">
+      <header className={`sticky top-0 z-40 backdrop-blur-2xl border-b shadow-[0_2px_20px_rgba(0,0,0,0.04)] transition-colors duration-500 ${isDarkMode ? 'bg-black/30 border-white/10' : 'bg-white/20 border-white/30'}`}>
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-12">
-          <div className="text-2xl font-bold tracking-tight cursor-pointer" onClick={() => {setIsSurveyOpen(false); setIsCompleted(false); setCurrentStep(1);}}>{t('appName')}</div>
+          <div className={`text-2xl font-bold tracking-tight cursor-pointer transition-colors duration-500 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`} onClick={() => {setIsSurveyOpen(false); setIsCompleted(false); setCurrentStep(1);}}>{t('appName')}</div>
           {!isSurveyOpen && (
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
               <a href="#solutions" className="text-blue-600 border-b-2 border-blue-600 pb-1">{t('nav.solutions')}</a>
@@ -697,11 +812,104 @@ export default function App() {
         <div className="flex items-center gap-4">
           {!isSurveyOpen && (
             <>
-              <a href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('nav.signIn')}</a>
+              {/* Premium Dark / Light Mode Toggle */}
+              <motion.div
+                className="relative w-[130px] h-[43px] rounded-full border-2 border-white/60 cursor-pointer overflow-hidden flex items-center shrink-0 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_2px_4px_4px_2px_rgba(2,1,68,0.5),inset_-2px_-2px_2px_rgba(1,0,89,0.5)]"
+                animate={{ backgroundColor: isDarkMode ? '#0f172a' : '#236fe9' }}
+                transition={{ duration: 0.5 }}
+                onClick={() => setIsDarkMode(prev => !prev)}
+                aria-label="Toggle dark mode"
+              >
+                {/* Stars Lottie (dark mode) */}
+                <motion.div
+                  className="absolute left-0 top-0 w-full h-full pointer-events-none z-0"
+                  animate={{ opacity: isDarkMode ? 1 : 0, y: isDarkMode ? 0 : 20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Player autoplay loop src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab4d8da4bb319001bbe_stars.json" style={{ width: '100%', height: '100%' }} />
+                </motion.div>
+                {/* Clouds Lottie base (light mode) */}
+                <motion.div
+                  className="absolute pointer-events-none z-0"
+                  style={{ width: '140%', height: '200%', left: '-20%', top: '-50%' }}
+                  animate={{ opacity: isDarkMode ? 0 : 0.9 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Player autoplay loop speed={1.5} src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab50719867ec6c32ff9_clouds.json" style={{ width: '100%', height: '100%' }} />
+                </motion.div>
+                {/* Static Clouds (light mode) */}
+                <motion.div
+                  className="absolute bottom-[-20px] left-[-20%] w-[140%] h-[110px] flex flex-col items-center justify-end pointer-events-none z-0"
+                  animate={{ y: isDarkMode ? 60 : 0, opacity: isDarkMode ? 0 : 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <motion.img
+                    src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed6_Vectors-Wrapper.svg"
+                    className="w-[180px] h-[66px] object-cover absolute bottom-[-8px]"
+                    animate={{ x: [-10, 10, -10] }}
+                    transition={{ repeat: Infinity, duration: 5.33, ease: 'easeInOut' }}
+                    alt=""
+                  />
+                  <motion.img
+                    src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed5_Vectors-Wrapper.svg"
+                    className="w-[180px] h-[66px] object-cover absolute bottom-[8px]"
+                    animate={{ x: [10, -10, 10] }}
+                    transition={{ repeat: Infinity, duration: 6.67, ease: 'easeInOut' }}
+                    alt=""
+                  />
+                </motion.div>
+                {/* Ripple rings */}
+                <motion.div
+                  className="absolute pointer-events-none z-0"
+                  style={{ left: '22px', top: '50%' }}
+                  animate={{ x: isDarkMode ? 88 : 0 }}
+                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                >
+                  <div className="absolute w-[70px] h-[70px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                  <div className="absolute w-[110px] h-[110px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                  <div className="absolute w-[150px] h-[150px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                </motion.div>
+                {/* Glow (moves with thumb) */}
+                <motion.div
+                  className="absolute flex items-center justify-center mix-blend-screen pointer-events-none z-0"
+                  style={{ left: '-50px', top: '50%', transform: 'translateY(-50%)' }}
+                  animate={{ x: isDarkMode ? 88 : 0 }}
+                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                >
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed3_Vectors-Wrapper.svg" className="absolute w-[85px] h-[85px] object-cover" animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} alt="" />
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed2_Vectors-Wrapper.svg" className="absolute w-[114px] h-[114px] object-cover" animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} alt="" />
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed4_Vectors-Wrapper.svg" className="absolute w-[142px] h-[142px] object-cover" animate={{ scale: [1, 1.02, 1], opacity: [0.4, 0.6, 0.4] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }} alt="" />
+                </motion.div>
+                {/* Thumb: Sun / Moon */}
+                <div className="absolute inset-0 flex items-center px-[8px] pointer-events-none z-10">
+                  <motion.div
+                    className="relative w-[29px] h-[29px] rounded-full flex items-center justify-center"
+                    animate={{ x: isDarkMode ? 88 : 0, rotate: isDarkMode ? 360 : 0 }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                  >
+                    <motion.img
+                      src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed0_Vectors-Wrapper.svg"
+                      className="absolute w-[29px] h-[29px] rounded-full shadow-[4px_8px_6px_rgba(0,0,0,0.2)]"
+                      animate={{ opacity: isDarkMode ? 0 : 1, scale: isDarkMode ? 0.5 : 1 }}
+                      transition={{ duration: 0.3 }}
+                      alt="Sun"
+                    />
+                    <motion.img
+                      src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed1_Vectors-Wrapper.svg"
+                      className="absolute w-[29px] h-[29px] rounded-full"
+                      animate={{ opacity: isDarkMode ? 1 : 0, scale: isDarkMode ? 1 : 0.5 }}
+                      transition={{ duration: 0.3 }}
+                      alt="Moon"
+                    />
+                  </motion.div>
+                </div>
+              </motion.div>
+              <a href="#" className={`text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>{t('nav.signIn')}</a>
               <button 
                 onClick={() => setIsSurveyOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                className="relative overflow-hidden rounded-full font-semibold px-6 py-2.5 text-sm transition-all duration-300 flex items-center gap-2 group bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)] hover:bg-white/50 hover:shadow-[0_6px_24px_rgba(59,130,246,0.2)] hover:-translate-y-0.5"
               >
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 {t('nav.getStarted')}
               </button>
             </>
@@ -725,9 +933,97 @@ export default function App() {
             <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 pointer-events-none group-hover:text-blue-600 transition-colors" />
           </div>
         </div>
+      </div>
       </header>
 
+      {/* Privacy Policy Modal */}
+      <AnimatePresence>
+        {showPrivacyModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowPrivacyModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="relative bg-white/30 backdrop-blur-3xl border border-white/50 shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-blue-500/20 border border-blue-300/40 rounded-2xl flex items-center justify-center text-blue-600">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#0b132b]">Chính sách Bảo mật</h2>
+              </div>
+              <div className="space-y-5 text-gray-700 text-sm leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Nguyên tắc Ẩn danh (Anonymization)</h3>
+                  <p>Hệ thống tuyệt đối không thu thập các thông tin định danh cá nhân (PII) như Họ tên, MSSV, Email, Số điện thoại hoặc địa chỉ IP.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Mã hóa Dữ liệu</h3>
+                  <p>Mọi phản hồi từ người dùng đều được mã hóa trước khi lưu trữ vào cơ sở dữ liệu. Các phiên làm việc (Session ID) được tạo ngẫu nhiên và không liên kết với thông tin thực tế của bạn.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Bảo mật Kỹ thuật</h3>
+                  <p>Toàn bộ giao tiếp giữa thiết bị của bạn và máy chủ được bảo vệ qua giao thức HTTPS. Quyền truy cập quản trị được kiểm soát nghiêm ngặt bằng mã xác thực (JWT).</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Giới hạn Lưu trữ</h3>
+                  <p>Dữ liệu chỉ phục vụ cho mục đích nghiên cứu học thuật của môn học <strong>MSIS3033</strong>. Toàn bộ dữ liệu sẽ được xóa sạch trong vòng <strong>3 tháng</strong> sau khi dự án kết thúc.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Báo cáo Tổng hợp</h3>
+                  <p>Các kết quả thống kê chỉ hiển thị dưới dạng dữ liệu gộp (như tỷ lệ theo giới tính, năm học), đảm bảo không một cá nhân nào có thể bị nhận diện từ báo cáo.</p>
+                </div>
+              </div>
+              <button onClick={() => setShowPrivacyModal(false)} className="mt-8 w-full py-3 rounded-full font-semibold bg-white/30 border border-white/50 text-gray-700 hover:bg-white/50 transition-all">Đóng</button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Ethics Modal */}
+      <AnimatePresence>
+        {showEthicsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowEthicsModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="relative bg-white/30 backdrop-blur-3xl border border-white/50 shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-green-500/20 border border-green-300/40 rounded-2xl flex items-center justify-center text-green-600">
+                  <HeartHandshake className="w-6 h-6" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#0b132b]">Đạo đức Nghiên cứu</h2>
+              </div>
+              <div className="space-y-5 text-gray-700 text-sm leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Tính Tự nguyện</h3>
+                  <p>Việc tham gia khảo sát là hoàn toàn tự nguyện. Bạn có quyền dừng lại và thoát khỏi hệ thống bất cứ lúc nào mà không cần giải thích.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Giới hạn Chẩn đoán (Disclaimer)</h3>
+                  <p>MindScan AI là công cụ sàng lọc sơ bộ, không phải là chẩn đoán y tế hoặc lâm sàng. Kết quả này <strong>không thay thế</strong> cho lời khuyên hoặc điều trị từ các chuyên gia sức khỏe tâm thần.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />An toàn Người dùng là Trên hết</h3>
+                  <p>Trong trường hợp hệ thống phát hiện mức độ stress cao (High Stress), chúng tôi bắt buộc hiển thị thông tin hỗ trợ khẩn cấp và Hotline tư vấn 24/7 <strong>(1800 599 920)</strong>.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Sử dụng Ngôn ngữ</h3>
+                  <p>Hệ thống cam kết sử dụng ngôn ngữ trung lập, không gây thêm áp lực tâm lý hoặc tạo sự kỳ thị (stigma) đối với người tham gia.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Công khai Hạn chế</h3>
+                  <p>Chúng tôi thừa nhận các hạn chế về mặt dữ liệu (như thiên kiến tự đánh giá) để đảm bảo tính trung thực và khách quan của kết quả nghiên cứu.</p>
+                </div>
+              </div>
+              <button onClick={() => setShowEthicsModal(false)} className="mt-8 w-full py-3 rounded-full font-semibold bg-white/30 border border-white/50 text-gray-700 hover:bg-white/50 transition-all">Đóng</button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
+        {renderHowItWorksModal()}
         {renderEmergencyModal()}
         {!isSurveyOpen ? (
           <motion.div 
@@ -752,30 +1048,30 @@ export default function App() {
                 <div className="flex flex-wrap items-center gap-6 mb-16">
                   <button 
                     onClick={() => setIsSurveyOpen(true)}
-                    className="bg-gradient-to-r from-blue-600 to-teal-400 text-white px-8 py-4 rounded-full font-medium flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/20"
+                    className="relative overflow-hidden rounded-full font-semibold px-8 py-4 transition-all duration-300 flex items-center gap-2 group bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.2)] hover:bg-white/50 hover:shadow-[0_12px_40px_rgba(59,130,246,0.25)] hover:-translate-y-1"
                   >
+                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     {t('hero.btnStart')} <ArrowRight className="w-5 h-5" />
                   </button>
-                  <button className="flex items-center gap-3 text-gray-600 font-medium hover:text-gray-900 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                  <button 
+                    onClick={() => setIsHowItWorksOpen(true)}
+                    className={`flex items-center gap-3 font-medium transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    <div className={`w-10 h-10 rounded-full backdrop-blur-sm border flex items-center justify-center shadow-sm ${isDarkMode ? 'bg-white/10 border-white/20 text-gray-300' : 'bg-white/40 border-white/50 text-gray-500'}`}>
                       <Play className="w-4 h-4 fill-current" />
                     </div>
                     {t('hero.btnWatch')}
                   </button>
                 </div>
 
-                <div className="flex items-center gap-8 text-sm font-bold text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-green-500" />
-                    <span className="leading-tight" dangerouslySetInnerHTML={{ __html: t('hero.statsExpert').replace(' ', '<br/>') }}></span>
+                <div className={`flex items-center gap-12 font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-6 h-6 text-green-500" />
+                    <span className="text-base leading-tight" dangerouslySetInnerHTML={{ __html: t('hero.statsExpert').replace(' ', '<br/>') }}></span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-green-500" />
-                    <span className="leading-tight">{t('hero.statsAnon').split(' ').slice(0,2).join(' ')}<br/>{t('hero.statsAnon').split(' ').slice(2).join(' ')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-green-500" />
-                    <span className="leading-tight">{t('hero.statsCampus').split(' ').slice(0,2).join(' ')}<br/>{t('hero.statsCampus').split(' ').slice(2).join(' ')}</span>
+                  <div className="flex items-center gap-3">
+                    <Lock className="w-6 h-6 text-green-500" />
+                    <span className="text-base leading-tight">{t('hero.statsAnon').split(' ').slice(0,2).join(' ')}<br/>{t('hero.statsAnon').split(' ').slice(2).join(' ')}</span>
                   </div>
                 </div>
               </div>
@@ -790,12 +1086,12 @@ export default function App() {
                 />
                 
                 {/* Top Right Floating Badge */}
-                <div className="absolute -top-6 -right-6 w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center text-blue-600">
+                <div className="absolute -top-6 -right-6 w-16 h-16 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-full shadow-xl flex items-center justify-center text-blue-600">
                   <Leaf className="w-6 h-6" />
                 </div>
 
                 {/* Bottom Right Floating Card */}
-                <div className="absolute bottom-8 right-8 bg-white/90 backdrop-blur-sm p-5 rounded-2xl shadow-xl max-w-xs">
+                <div className="absolute bottom-8 right-8 bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-5 rounded-2xl max-w-xs">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                       <Heart className="w-4 h-4 fill-current" />
@@ -808,7 +1104,7 @@ export default function App() {
             </section>
 
             {/* Wellness Tools Section */}
-            <section id="solutions" className="bg-gradient-to-b from-white to-[#fafbfc] py-24">
+            <section id="solutions" className="py-24 relative z-10">
               <div className="container mx-auto px-6">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                   <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0b132b]">{t('solutions.title')}</h2>
@@ -819,34 +1115,34 @@ export default function App() {
 
                 <div className="grid md:grid-cols-3 gap-8">
                   {/* Card 1 */}
-                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-6">
+                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-600 flex items-center justify-center mb-6 border border-blue-200/50">
                       <BarChart2 className="w-6 h-6" />
                     </div>
                     <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card1Title')}</h3>
-                    <p className="text-gray-500 leading-relaxed">
+                    <p className="text-gray-600 leading-relaxed">
                       {t('solutions.card1Text')}
                     </p>
                   </div>
 
                   {/* Card 2 */}
-                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-6">
+                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-green-500/20 text-green-600 flex items-center justify-center mb-6 border border-green-200/50">
                       <Leaf className="w-6 h-6" />
                     </div>
                     <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card2Title')}</h3>
-                    <p className="text-gray-500 leading-relaxed">
+                    <p className="text-gray-600 leading-relaxed">
                       {t('solutions.card2Text')}
                     </p>
                   </div>
 
                   {/* Card 3 */}
-                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-6">
+                  <div className="relative bg-white/20 backdrop-blur-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] rounded-[2rem] overflow-hidden p-8 hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-600 flex items-center justify-center mb-6 border border-purple-200/50">
                       <HeartHandshake className="w-6 h-6" />
                     </div>
                     <h3 className="text-xl font-bold mb-3 text-[#0b132b]">{t('solutions.card3Title')}</h3>
-                    <p className="text-gray-500 leading-relaxed">
+                    <p className="text-gray-600 leading-relaxed">
                       {t('solutions.card3Text')}
                     </p>
                   </div>
@@ -928,25 +1224,23 @@ export default function App() {
             </section>
 
             {/* Footer */}
-            <footer className="border-t border-gray-200 bg-white pt-12 pb-8">
+            <footer className="border-t border-white/30 bg-white/10 backdrop-blur-2xl pt-12 pb-8 relative z-10">
               <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
                   <div className="text-xl font-bold mb-2 text-[#0b132b]">{t('appName')}</div>
-                  <div className="text-sm text-gray-500">© 2024 {t('appName')}. {t('footer.desc')}</div>
+                  <div className="text-sm text-gray-500">© 2026 MindScan AI: Thấu hiểu áp lực – Sẻ chia giải pháp.</div>
                 </div>
                 
                 <div className="flex items-center gap-6 text-sm text-gray-500">
-                  <a href="#" className="hover:text-gray-900">{t('footer.privacy')}</a>
-                  <a href="#" className="hover:text-gray-900">{t('footer.ethics')}</a>
-                  <a href="#" className="hover:text-gray-900">{t('footer.partners')}</a>
-                  <a href="#" className="hover:text-gray-900">{t('footer.careers')}</a>
+                  <button onClick={() => setShowPrivacyModal(true)} className="hover:text-gray-900 transition-colors">{t('footer.privacy')}</button>
+                  <button onClick={() => setShowEthicsModal(true)} className="hover:text-gray-900 transition-colors">{t('footer.ethics')}</button>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+                  <button className="w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm border border-white/40 flex items-center justify-center text-gray-500 hover:bg-white/50 transition-all">
                     <Share2 className="w-4 h-4" />
                   </button>
-                  <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+                  <button className="w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm border border-white/40 flex items-center justify-center text-gray-500 hover:bg-white/50 transition-all">
                     <Mail className="w-4 h-4" />
                   </button>
                 </div>
@@ -970,7 +1264,7 @@ export default function App() {
             className="container mx-auto px-6 py-12 max-w-3xl"
           >
             {!isCompleted ? (
-              <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+              <div className="relative bg-white/25 backdrop-blur-3xl border border-white/40 shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12">
                 {/* Progress Bar */}
                 <div className="mb-12">
                   <div className="flex justify-between text-sm font-medium text-gray-500 mb-3">
@@ -1012,8 +1306,9 @@ export default function App() {
                   <button 
                     onClick={nextStep}
                     aria-label={currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    className="relative overflow-hidden group px-8 py-3 rounded-full font-semibold bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.15)] hover:bg-white/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   >
+                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     {currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')} <ArrowRight className="w-5 h-5" aria-hidden="true" />
                   </button>
                 </div>
@@ -1021,7 +1316,7 @@ export default function App() {
             ) : (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-3xl shadow-xl p-8 md:p-12"
+                className="relative bg-white/25 backdrop-blur-3xl border border-white/40 shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12"
               >
                 {isAnalyzing ? (
                   <div className="text-center py-12">
@@ -1030,7 +1325,7 @@ export default function App() {
                     <p className="text-gray-500">{t('survey.analyzingDesc')}</p>
                   </div>
                 ) : aiResult ? (
-                  <div className="text-left w-full max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-gray-100">
+                  <div className="text-left w-full max-w-4xl mx-auto">
                     
                     {/* 1. Biểu đồ Gauge */}
                     <div className="mb-12 flex flex-col items-center">
@@ -1060,7 +1355,7 @@ export default function App() {
                         <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">{t('results.historyTitle')}</h3>
                         <div className="space-y-4">
                           {sessionHistory.map((session, idx) => (
-                            <div key={idx} className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <div key={idx} className="flex items-center gap-4 bg-white/20 backdrop-blur-sm border border-white/30 p-4 rounded-2xl">
                               <div className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap ${
                                 session.level === 'High' ? 'bg-red-100 text-red-700' :
                                 session.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
