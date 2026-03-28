@@ -1,34 +1,41 @@
-```
-# 🧠 Mindscan AI — Student Mental Wellness Survey & Recommendation System
+# 🧠 Mindscan AI — Hệ thống Khảo sát & Khuyến nghị Sức khỏe Tâm thần Sinh viên
 
-> A full-stack AI-powered web application that analyzes student stress levels from survey inputs and delivers personalized mental wellness recommendations.
+> Ứng dụng web full-stack sử dụng AI để phân tích mức độ căng thẳng của sinh viên từ dữ liệu khảo sát và đưa ra các khuyến nghị sức khỏe tâm thần được cá nhân hóa.
 
 ---
 
-## 📋 Table of Contents
+## 📋 Mục lục
 
-- [Overview](#overview)
-- [Project Architecture](#project-architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-  - [1. Start the Backend (FastAPI)](#1-start-the-backend-fastapi)
-  - [2. Start the Frontend (React/Vite)](#2-start-the-frontend-reactvite)
+- [Tổng quan](#tổng-quan)
+- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Yêu cầu cài đặt](#yêu-cầu-cài-đặt)
+- [Hướng dẫn khởi động](#hướng-dẫn-khởi-động)
+  - [1. Khởi động Backend (FastAPI)](#1-khởi-động-backend-fastapi)
+  - [2. Khởi động Frontend (React/Vite)](#2-khởi-động-frontend-reactvite)
 - [API Endpoints](#api-endpoints)
-- [Environment Variables](#environment-variables)
-- [AI Model Details](#ai-model-details)
-- [Troubleshooting](#troubleshooting)
+- [Biến môi trường](#biến-môi-trường)
+- [Chi tiết mô hình AI](#chi-tiết-mô-hình-ai)
+- [Xử lý sự cố](#xử-lý-sự-cố)
 
 ---
 
-## Overview
+## Tổng quan
 
-Mindscan AI is a mental wellness platform designed for students. It collects survey data about a student's academic habits, lifestyle, and personal factors, then uses a trained **XGBoost** machine learning model to predict their stress level and return a personalized set of wellness recommendations.
+Mindscan AI là nền tảng sức khỏe tâm thần được thiết kế cho sinh viên. Hệ thống thu thập dữ liệu khảo sát về thói quen học tập, lối sống và các yếu tố cá nhân, sau đó dùng mô hình học máy **XGBoost** đã được huấn luyện để dự đoán mức độ căng thẳng và trả về các khuyến nghị sức khỏe được cá nhân hóa.
+
+**Tính năng nổi bật:**
+
+- 🌍 Hỗ trợ đa ngôn ngữ: Tiếng Việt, Tiếng Anh, Tiếng Đức, Tiếng Trung
+- 🔒 Khảo sát hoàn toàn ẩn danh, không thu thập thông tin cá nhân
+- 🤖 Gợi ý AI cá nhân hóa từ Google Gemini API
+- 📊 Trực quan hóa mức độ stress theo thời gian thực
+- 🚨 Cảnh báo khẩn cấp và kết nối tài nguyên hỗ trợ tâm lý
 
 ---
 
-## Project Architecture
+## Kiến trúc hệ thống
 
 ```
 ┌──────────────────────┐         ┌─────────────────────────────┐
@@ -47,198 +54,219 @@ Mindscan AI is a mental wellness platform designed for students. It collects sur
 
 ---
 
-## Tech Stack
+## Công nghệ sử dụng
 
-| Layer       | Technology                                              |
-|-------------|--------------------------------------------------------|
-| Frontend    | React 19, TypeScript, Vite 6, Tailwind CSS v4          |
-| UI/UX       | Lucide React, Recharts, Motion (Framer)                |
-| Backend     | Python, FastAPI, Uvicorn                               |
-| Database    | SQLite (via SQLAlchemy async + aiosqlite)              |
-| ML Model    | XGBoost, scikit-learn, joblib, pandas                  |
-| Auth        | JWT (PyJWT) for Admin routes                           |
-| AI          | Google Gemini API (`@google/genai`)                    |
+| Tầng         | Công nghệ                                               |
+|--------------|---------------------------------------------------------|
+| Frontend     | React 19, TypeScript, Vite 6, Tailwind CSS v4           |
+| UI/UX        | Lucide React, Recharts, Motion (Framer)                 |
+| Backend      | Python, FastAPI, Uvicorn                                |
+| Cơ sở dữ liệu| SQLite (SQLAlchemy async + aiosqlite)                   |
+| Mô hình ML   | XGBoost, scikit-learn, joblib, pandas                   |
+| Xác thực     | JWT (PyJWT) cho các route Admin                         |
+| AI           | Google Gemini API (`@google/genai`)                     |
 
 ---
 
-## Project Structure
+## Cấu trúc thư mục
 
 ```
 mindscan-ai-landing-page/
 ├── backend/
-│   ├── main.py               # FastAPI app entrypoint, CORS, lifespan
-│   ├── database.py           # SQLAlchemy async engine & session
-│   ├── models.py             # ORM models (Session, Response, Prediction, Recommendation)
-│   ├── schemas.py            # Pydantic request/response schemas
-│   ├── auth.py               # JWT authentication utilities
-│   ├── requirements.txt      # Python dependencies
-│   ├── .env                  # Backend environment variables (not committed)
+│   ├── main.py                     # Entrypoint FastAPI, CORS, lifespan
+│   ├── database.py                 # SQLAlchemy async engine & session
+│   ├── models.py                   # ORM models (Session, Prediction...)
+│   ├── schemas.py                  # Pydantic request/response schemas
+│   ├── auth.py                     # JWT authentication utilities
+│   ├── requirements.txt            # Python dependencies
+│   ├── .env                        # Biến môi trường backend (không commit)
 │   ├── routers/
-│   │   ├── user.py           # User-facing API routes
-│   │   └── admin.py          # Admin-only API routes
+│   │   ├── user.py                 # API routes dành cho người dùng
+│   │   └── admin.py                # API routes dành cho Admin
 │   └── services/
-│       ├── ml_service.py     # XGBoost model loading & stress prediction
-│       └── recommendation_service.py  # Rule-based recommendation engine
+│       ├── ml_service.py           # Tải & dự đoán từ mô hình XGBoost
+│       └── recommendation_service.py  # Engine khuyến nghị
 ├── src/
-│   ├── App.tsx               # Main React application & all page components
-│   ├── main.tsx              # React entry point
-│   ├── index.css             # Global styles
-│   └── services/             # API service layer (axios/fetch wrappers)
-├── scaler.pkl                # Pre-trained StandardScaler artifact
-├── xgboost_stress_model.pkl  # Pre-trained XGBoost model
-├── mindscan_ai.db            # SQLite database (auto-created on first run)
-├── index.html                # HTML shell for Vite
-├── package.json              # Node dependencies & scripts
-├── vite.config.ts            # Vite configuration
-├── tsconfig.json             # TypeScript configuration
-└── .env.example              # Frontend environment variable template
+│   ├── App.tsx                     # Ứng dụng React chính
+│   ├── translations.ts             # Từ điển đa ngôn ngữ (vi/en/de/zh)
+│   ├── main.tsx                    # Entry point React
+│   ├── index.css                   # Global styles
+│   └── services/
+│       └── geminiService.ts        # Kết nối Google Gemini API
+├── scaler.pkl                      # StandardScaler đã huấn luyện
+├── xgboost_stress_model.pkl        # Mô hình XGBoost đã huấn luyện (~1MB)
+├── mindscan_ai.db                  # SQLite database (tự tạo khi chạy lần đầu)
+├── index.html                      # HTML shell cho Vite
+├── package.json                    # Node dependencies & scripts
+├── vite.config.ts                  # Cấu hình Vite
+├── tsconfig.json                   # Cấu hình TypeScript
+└── .env.example                    # Mẫu biến môi trường Frontend
 ```
 
 ---
 
-## Prerequisites
+## Yêu cầu cài đặt
 
-Make sure the following are installed on your machine before proceeding:
+Đảm bảo đã cài các phần mềm sau trước khi bắt đầu:
 
 - **Python** ≥ 3.10
-- **Node.js** ≥ 18 (with `npm`)
-- **Git** (optional, for cloning)
+- **Node.js** ≥ 18 (kèm `npm`)
+- **Git** (tùy chọn, để clone repo)
 
 ---
 
-## Getting Started
+## Hướng dẫn khởi động
 
-You need **two terminal windows** running simultaneously — one for the backend and one for the frontend.
+Bạn cần **hai cửa sổ terminal** chạy song song — một cho backend và một cho frontend.
 
-### 1. Start the Backend (FastAPI)
+### 1. Khởi động Backend (FastAPI)
 
-Open your first terminal and run the following commands from the project root:
+Mở terminal thứ nhất và chạy từ thư mục gốc của dự án:
 
-**Step 1 — Create and activate a virtual environment:**
+**Bước 1 — Tạo và kích hoạt môi trường ảo:**
+
 ```bash
 python -m venv venv
 
 # Windows (PowerShell)
 .\venv\Scripts\Activate.ps1
 
+# Windows (CMD)
+.\venv\Scripts\activate.bat
+
 # macOS / Linux
 source venv/bin/activate
 ```
 
-**Step 2 — Install Python dependencies:**
+**Bước 2 — Cài đặt các thư viện Python:**
+
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-**Step 3 — Configure backend environment:**
+**Bước 3 — Cấu hình biến môi trường backend:**
 
-Copy or create `backend/.env` with the following content:
+Tạo file `backend/.env` với nội dung sau:
+
 ```env
 DATABASE_URL=sqlite+aiosqlite:///./mindscan_ai.db
 JWT_SECRET_KEY=your-super-secret-key-here
 ```
 
-**Step 4 — Start the Uvicorn server:**
+**Bước 4 — Khởi động server Uvicorn:**
+
 ```bash
 uvicorn backend.main:app --port 8080 --reload
 ```
 
-The backend API will be available at:
+Backend API sẽ khả dụng tại:
+
 - **API Root:** http://localhost:8080
-- **Swagger Docs (Interactive):** http://localhost:8080/docs
+- **Swagger Docs (Tương tác):** http://localhost:8080/docs
 - **ReDoc:** http://localhost:8080/redoc
 
 ---
 
-### 2. Start the Frontend (React/Vite)
+### 2. Khởi động Frontend (React/Vite)
 
-Open a **second terminal** and run the following from the project root:
+Mở **terminal thứ hai** và chạy từ thư mục gốc:
 
-**Step 1 — Install Node dependencies:**
+**Bước 1 — Cài đặt Node dependencies:**
+
 ```bash
 npm install
 ```
 
-**Step 2 — Start the development server:**
+**Bước 2 — Cấu hình biến môi trường frontend:**
+
+Sao chép `.env.example` thành `.env` và điền API key:
+
+```env
+VITE_GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+**Bước 3 — Khởi động development server:**
+
 ```bash
 npm run dev
 ```
 
-The frontend will be available at: **http://localhost:3000**
+Frontend sẽ khả dụng tại: **http://localhost:3000**
 
-> ⚠️ **Important:** Ensure the backend is running on port `8080` before using the frontend, as all survey submissions and predictions depend on a live backend connection.
+> ⚠️ **Lưu ý:** Đảm bảo backend đang chạy trên cổng `8080` trước khi sử dụng frontend, vì toàn bộ khảo sát và dự đoán đều phụ thuộc vào kết nối backend.
 
 ---
 
 ## API Endpoints
 
-### User Endpoints
+### Endpoints dành cho người dùng
 
-| Method | Endpoint                    | Description                                      |
-|--------|-----------------------------|--------------------------------------------------|
-| `POST` | `/api/session`              | Create a new anonymous user session              |
-| `POST` | `/api/predict?session_id=…` | Submit survey data and get stress prediction     |
-| `GET`  | `/api/recommend/{pred_id}`  | Fetch recommendations for a given prediction ID  |
-| `GET`  | `/api/history/{session_id}` | Retrieve full prediction history for a session   |
+| Method | Endpoint                    | Mô tả                                              |
+|--------|-----------------------------|----------------------------------------------------|
+| `POST` | `/api/session`              | Tạo phiên người dùng ẩn danh mới                   |
+| `POST` | `/api/predict?session_id=…` | Gửi dữ liệu khảo sát và nhận kết quả dự đoán stress|
+| `GET`  | `/api/recommend/{pred_id}`  | Lấy danh sách khuyến nghị cho một dự đoán          |
+| `GET`  | `/api/history/{session_id}` | Xem lịch sử dự đoán của một phiên                  |
 
-### Admin Endpoints (JWT required)
+### Endpoints dành cho Admin (yêu cầu JWT)
 
-All admin endpoints require a `Bearer <token>` header.
+Tất cả các endpoint admin yêu cầu header `Bearer <token>`.
 
-| Method | Endpoint            | Description                                      |
-|--------|---------------------|--------------------------------------------------|
-| `GET`  | `/api/admin/stats`  | Get aggregate stats (sessions, predictions, high-stress rate) |
-| `GET`  | `/api/admin/export` | Export all responses & predictions as a CSV file |
+| Method | Endpoint             | Mô tả                                                       |
+|--------|----------------------|-------------------------------------------------------------|
+| `GET`  | `/api/admin/stats`   | Thống kê tổng hợp (số phiên, dự đoán, tỷ lệ stress cao)   |
+| `GET`  | `/api/admin/export`  | Xuất toàn bộ dữ liệu dưới dạng file CSV                    |
 
-> Full interactive documentation available at **[http://localhost:8080/docs](http://localhost:8080/docs)** when the server is running.
+> Tài liệu tương tác đầy đủ có tại **[http://localhost:8080/docs](http://localhost:8080/docs)** khi server đang chạy.
 
 ---
 
-## Environment Variables
+## Biến môi trường
 
 ### Backend — `backend/.env`
 
-| Variable         | Description                              | Default                                      |
-|------------------|------------------------------------------|----------------------------------------------|
-| `DATABASE_URL`   | SQLAlchemy async connection string       | `sqlite+aiosqlite:///./mindscan_ai.db`       |
-| `JWT_SECRET_KEY` | Secret key used to sign JWT tokens       | *(required, set a strong random string)*     |
+| Biến               | Mô tả                                   | Giá trị mặc định                          |
+|--------------------|-----------------------------------------|------------------------------------------|
+| `DATABASE_URL`     | Chuỗi kết nối SQLAlchemy async          | `sqlite+aiosqlite:///./mindscan_ai.db`   |
+| `JWT_SECRET_KEY`   | Khóa bí mật để ký JWT token             | *(bắt buộc, đặt chuỗi ngẫu nhiên mạnh)* |
 
-### Frontend — `.env` (root)
+### Frontend — `.env` (thư mục gốc)
 
-Copy `.env.example` to `.env` in the project root and fill in your values.
+Sao chép `.env.example` thành `.env` và điền giá trị.
 
-| Variable         | Required | Description                                                                 |
-|------------------|----------|-----------------------------------------------------------------------------|
-| `GEMINI_API_KEY` | Optional | Google Gemini API key. If omitted, the app falls back to the FastAPI backend only. Get one at [aistudio.google.com](https://aistudio.google.com/app/apikey) |
-
----
-
-## AI Model Details
-
-The stress prediction pipeline works as follows:
-
-1. **Survey Input:** The user completes a survey with ~13 data points (age, gender, CGPA, sleep hours, study hours, social/physical activity level, academic pressure, financial stress, mental health history, etc.)
-2. **Feature Scaling:** The backend maps the 13 inputs to the full 20-feature vector the model was trained on, applying sensible default baselines for the remaining fields.
-3. **Prediction:** The scaled feature vector is fed into `xgboost_stress_model.pkl` (loaded via `joblib`) using a pre-fitted `scaler.pkl` (StandardScaler).
-4. **Output:** The model returns a **stress level** classification and a **confidence score**.
-5. **Recommendations:** A rule-based engine (`recommendation_service.py`) uses the stress level and survey inputs to generate categorized wellness recommendations.
-
-**Model artifacts:**
-- `scaler.pkl` — Pre-fitted StandardScaler
-- `xgboost_stress_model.pkl` — Trained XGBoost classifier (~1 MB)
+| Biến                  | Bắt buộc | Mô tả                                                                                          |
+|-----------------------|----------|------------------------------------------------------------------------------------------------|
+| `VITE_GEMINI_API_KEY` | Không    | Google Gemini API key. Nếu bỏ trống, app chỉ dùng backend FastAPI. Lấy tại [aistudio.google.com](https://aistudio.google.com/app/apikey) |
 
 ---
 
-## Troubleshooting
+## Chi tiết mô hình AI
 
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| `CORS error` in browser console | Frontend port not in CORS allow-list | Make sure backend has your frontend port (`3000` or `5173`) in `main.py` CORS origins |
-| `503 Service Unavailable` on `/api/predict` | `.pkl` model files not found | Ensure `xgboost_stress_model.pkl` and `scaler.pkl` exist in the **project root** (not inside `backend/`) |
-| `ModuleNotFoundError` when starting uvicorn | Running from wrong directory or venv not active | Run `uvicorn backend.main:app ...` from the **project root**, with venv activated |
-| Frontend shows "Lỗi kết nối" fallback | Backend not running or wrong port | Start the backend first with `uvicorn backend.main:app --port 8080 --reload` |
-| `422 Unprocessable Entity` on predict | GPA value > 4.0 sent by client | The backend now enforces `cgpa ≤ 4.0`; check that the frontend sends a valid GPA |
+Pipeline dự đoán stress hoạt động như sau:
+
+1. **Đầu vào khảo sát:** Người dùng hoàn thành khảo sát với 20 điểm dữ liệu trải qua 5 nhóm (Thông tin cá nhân, Học tập, Tâm lý, Thể chất, Xã hội & Môi trường).
+2. **Chuẩn hóa đặc trưng:** Backend ánh xạ 20 đầu vào vào vector đặc trưng mà mô hình đã được huấn luyện, sử dụng `scaler.pkl` (StandardScaler).
+3. **Dự đoán:** Vector đặc trưng đã chuẩn hóa được đưa vào `xgboost_stress_model.pkl` (tải qua `joblib`).
+4. **Đầu ra:** Mô hình trả về **mức độ stress** (Low / Medium / High) và **điểm tin cậy (confidence)**.
+5. **Khuyến nghị:** Engine dựa trên quy tắc (`recommendation_service.py`) dùng mức stress và dữ liệu khảo sát để tạo các khuyến nghị sức khỏe phân loại.
+
+**Các file mô hình:**
+
+- `scaler.pkl` — StandardScaler đã fit sẵn
+- `xgboost_stress_model.pkl` — XGBoost classifier đã huấn luyện (~1 MB)
 
 ---
 
-*Built with ❤️ for student mental wellness.*
+## Xử lý sự cố
+
+| Triệu chứng | Nguyên nhân | Cách khắc phục |
+|---|---|---|
+| Lỗi `CORS` trong console trình duyệt | Cổng frontend không có trong danh sách CORS | Đảm bảo backend có cổng frontend (`3000`) trong `main.py` CORS origins |
+| `503 Service Unavailable` tại `/api/predict` | Không tìm thấy file `.pkl` | Đảm bảo `xgboost_stress_model.pkl` và `scaler.pkl` tồn tại ở **thư mục gốc** (không phải trong `backend/`) |
+| `ModuleNotFoundError` khi khởi động uvicorn | Chạy sai thư mục hoặc chưa kích hoạt venv | Chạy `uvicorn backend.main:app ...` từ **thư mục gốc**, với venv đã được kích hoạt |
+| Frontend hiển thị lỗi kết nối | Backend chưa chạy hoặc sai cổng | Khởi động backend trước với `uvicorn backend.main:app --port 8080 --reload` |
+| `422 Unprocessable Entity` tại predict | Dữ liệu đầu vào không hợp lệ | Kiểm tra lại dữ liệu gửi lên có khớp với schema Pydantic không |
+
+---
+
+*Được xây dựng với ❤️ vì sức khỏe tâm thần sinh viên.*

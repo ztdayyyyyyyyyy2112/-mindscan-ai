@@ -12,15 +12,27 @@ class SessionResponse(BaseModel):
 class SurveyInput(BaseModel):
     age: int = Field(..., ge=10, le=100)
     gender: str = Field(..., max_length=50)
-    cgpa: float = Field(..., ge=0, le=4.0) # Max 4.0 to match the frontend GPA scale
-    sleep_hours: float = Field(..., ge=0, le=24)
-    study_hours: float = Field(..., ge=0, le=24)
-    social_activity: float = Field(..., ge=0)
-    physical_activity: float = Field(..., ge=0)
-    academic_pressure: int = Field(..., ge=0)
-    financial_stress: int = Field(..., ge=0)
-    mental_health_history: int = Field(..., ge=0, le=1) # Example: 0 for No, 1 for Yes
-    extra_features: Optional[Dict[str, Any]] = None
+    
+    anxiety_level: float = Field(..., ge=0, le=21)
+    self_esteem: float = Field(..., ge=0, le=30)
+    mental_health_history: int = Field(..., ge=0, le=1)
+    depression: float = Field(..., ge=0, le=27)
+    headache: float = Field(..., ge=0, le=5)
+    blood_pressure: int = Field(..., ge=1, le=3)
+    sleep_quality: float = Field(..., ge=0, le=5)
+    breathing_problem: float = Field(..., ge=0, le=5)
+    noise_level: float = Field(..., ge=0, le=5)
+    living_conditions: float = Field(..., ge=0, le=5)
+    safety: float = Field(..., ge=0, le=5)
+    basic_needs: float = Field(..., ge=0, le=5)
+    academic_performance: float = Field(..., ge=0, le=5)
+    study_load: float = Field(..., ge=0, le=5)
+    teacher_student_relationship: float = Field(..., ge=0, le=5)
+    future_career_concerns: float = Field(..., ge=0, le=5)
+    social_support: float = Field(..., ge=0, le=3)
+    peer_pressure: float = Field(..., ge=0, le=5)
+    extracurricular_activities: float = Field(..., ge=0, le=5)
+    bullying: float = Field(..., ge=0, le=5)
 
 class RecommendationResponse(BaseModel):
     reco_id: int

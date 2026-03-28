@@ -31,45 +31,27 @@ def predict_stress(input_data: dict) -> dict:
     if not model or not scaler:
         raise RuntimeError("Model or Scaler not loaded. Please make sure the .pkl files exist.")
 
-    # Order of features must match what the model was trained on!
-    # Expected: age, gender, cgpa, sleep_hours, study_hours, social_activity, 
-    #           physical_activity, academic_pressure, financial_stress, mental_health_history
-    # NOTE: 'gender' is string, we might need to handle categorical encoding if the AI engineer didn't include it in 'scaler'.
-    # If the model expects numerical gender (e.g., 0=Male, 1=Female), we might need to map it here first.
-    # Assuming the AI Engineer provided a scaler that handles numericals, let's just do a naive encoding or pass it as is.
-    # Usually XGBoost can't handle bare strings implicitly unless encoded.
-    
-    extra = input_data.get('extra_features') or {}
-    
-    def get_val(key, default=0.0):
-        # Numeric values expected usually
-        if key in input_data:
-            return float(input_data[key])
-        if key in extra:
-            return float(extra[key])
-        return float(default)
-
     features = [
-        get_val('anxiety_level', input_data.get('academic_pressure', 0)), # Mapping fallback
-        get_val('self_esteem', 10),
-        get_val('mental_health_history', input_data.get('mental_health_history', 0)),
-        get_val('depression', 0),
-        get_val('headache', 0),
-        get_val('blood_pressure', 0),
-        get_val('sleep_quality', input_data.get('sleep_hours', 0)),
-        get_val('breathing_problem', 0),
-        get_val('noise_level', 0),
-        get_val('living_conditions', 0),
-        get_val('safety', 0),
-        get_val('basic_needs', 0),
-        get_val('academic_performance', input_data.get('cgpa', 0)),
-        get_val('study_load', input_data.get('study_hours', 0)),
-        get_val('teacher_student_relationship', 0),
-        get_val('future_career_concerns', input_data.get('financial_stress', 0)),
-        get_val('social_support', input_data.get('social_activity', 0)),
-        get_val('peer_pressure', 0),
-        get_val('extracurricular_activities', input_data.get('physical_activity', 0)),
-        get_val('bullying', 0)
+        float(input_data.get('anxiety_level', 0)),
+        float(input_data.get('self_esteem', 0)),
+        float(input_data.get('mental_health_history', 0)),
+        float(input_data.get('depression', 0)),
+        float(input_data.get('headache', 0)),
+        float(input_data.get('blood_pressure', 1)),
+        float(input_data.get('sleep_quality', 0)),
+        float(input_data.get('breathing_problem', 0)),
+        float(input_data.get('noise_level', 0)),
+        float(input_data.get('living_conditions', 0)),
+        float(input_data.get('safety', 0)),
+        float(input_data.get('basic_needs', 0)),
+        float(input_data.get('academic_performance', 0)),
+        float(input_data.get('study_load', 0)),
+        float(input_data.get('teacher_student_relationship', 0)),
+        float(input_data.get('future_career_concerns', 0)),
+        float(input_data.get('social_support', 0)),
+        float(input_data.get('peer_pressure', 0)),
+        float(input_data.get('extracurricular_activities', 0)),
+        float(input_data.get('bullying', 0))
     ]
 
     features_array = np.array([features])
@@ -100,37 +82,9 @@ def predict_stress(input_data: dict) -> dict:
         'extracurricular_activities', 'bullying'
     ]
 
-    # Map back to user-facing keys that the frontend understands
-    key_map = {
-        'anxiety_level': 'anxiety_level',
-        'self_esteem': 'self_esteem',
-        'mental_health_history': 'mental_health_history',
-        'depression': 'depression',
-        'headache': 'headache',
-        'blood_pressure': 'blood_pressure',
-        'sleep_quality': 'sleep_hours',
-        'breathing_problem': 'breathing_problem',
-        'noise_level': 'noise_level',
-        'living_conditions': 'living_conditions',
-        'safety': 'living_conditions',
-        'basic_needs': 'financial_stress',
-        'academic_performance': 'cgpa',
-        'study_load': 'study_hours',
-        'teacher_student_relationship': 'academic_pressure',
-        'future_career_concerns': 'financial_stress',
-        'social_support': 'social_activity',
-        'peer_pressure': 'academic_pressure',
-        'extracurricular_activities': 'physical_activity',
-        'bullying': 'bullying',
-    }
-
     try:
         importances = model.feature_importances_
-        # Aggregate importances by frontend key (some features map to same key)
-        agg: dict = {}
-        for fname, imp in zip(feature_names, importances):
-            fkey = key_map.get(fname, fname)
-            agg[fkey] = agg.get(fkey, 0.0) + float(imp)
+        agg = {fname: float(imp) for fname, imp in zip(feature_names, importances)}
         
         # Normalize to sum = 1 and sort descending, keep top 6
         total = sum(agg.values()) or 1.0

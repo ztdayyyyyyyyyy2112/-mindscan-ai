@@ -15,7 +15,7 @@ export interface AIRecommendation {
   emergency_contact?: string;
 }
 
-export async function analyzeSurveyData(data: any): Promise<AIRecommendation> {
+export async function analyzeSurveyData(data: any, language: 'vi' | 'en' | 'de' | 'zh' = 'vi'): Promise<AIRecommendation> {
   // 1. Get Session ID
   let sessionId = localStorage.getItem('mindscan_session_id');
   if (!sessionId) {
@@ -30,17 +30,7 @@ export async function analyzeSurveyData(data: any): Promise<AIRecommendation> {
     }
   }
 
-  // 2. Map frontend formData to Backend SurveyInput schema
-  const cgpa = parseFloat(data.gpa) || 2.5;
-  const sleepMap: any = { '<4h': 3, '4-5h': 4.5, '6-7h': 6.5, '7-8h': 7.5, '>8h': 9 };
-  const sleep_hours = sleepMap[data.sleepHours] || 6;
-
-  const studyMap: any = { '<2h': 1, '2-4h': 3, '4-6h': 5, '6-8h': 7, '>8h': 9 };
-  const study_hours = studyMap[data.studyHours] || 4;
-  
-  const exerciseMap: any = { '0 ngày': 0, '1-2 ngày': 1.5, '3-4 ngày': 3.5, '5+ ngày': 5 };
-  const physical_activity = exerciseMap[data.exercise] || 0;
-
+  // 2. Map frontend formData directly to new Backend SurveyInput schema (20 specific features)
   let gender = 'other';
   if (data.gender === 'Nam') gender = 'male';
   if (data.gender === 'Nữ') gender = 'female';
@@ -48,24 +38,27 @@ export async function analyzeSurveyData(data: any): Promise<AIRecommendation> {
   const payload = {
     age: parseInt(data.age) || 20,
     gender: gender,
-    cgpa: cgpa,
-    sleep_hours: sleep_hours,
-    study_hours: study_hours,
-    social_activity: data.socialActivities || 3,
-    physical_activity: physical_activity,
-    academic_pressure: data.studyLoad || 3,
-    financial_stress: data.financialPressure || 3,
-    mental_health_history: data.mentalHistory === 'Có' ? 1 : 0,
-    extra_features: {
-      anxiety_level: data.worryLevel || 3,
-      self_esteem: data.selfEsteem || 5,
-      depression: data.depression || 1,
-      headache: data.headache || 1,
-      breathing_problem: data.breathingProblem || 1,
-      noise_level: data.noiseLevel || 3,
-      living_conditions: data.livingConditions || 3,
-      bullying: data.bullying === 'Có' ? 1 : 0
-    }
+    anxiety_level: Number(data.anxiety_level) || 0,
+    depression: Number(data.depression) || 0,
+    self_esteem: Number(data.self_esteem) || 15,
+    mental_health_history: data.mental_health_history === 'Có' ? 1 : 0,
+    blood_pressure: Number(data.blood_pressure) || 2,
+    sleep_quality: Number(data.sleep_quality) || 3,
+    headache: Number(data.headache) || 0,
+    breathing_problem: Number(data.breathing_problem) || 0,
+    study_load: Number(data.study_load) || 3,
+    academic_performance: Number(data.academic_performance) || 3,
+    teacher_student_relationship: Number(data.teacher_student_relationship) || 3,
+    future_career_concerns: Number(data.future_career_concerns) || 3,
+    social_support: Number(data.social_support) || 1,
+    peer_pressure: Number(data.peer_pressure) || 0,
+    extracurricular_activities: Number(data.extracurricular_activities) || 2,
+    bullying: Number(data.bullying) || 0,
+    noise_level: Number(data.noise_level) || 0,
+    living_conditions: Number(data.living_conditions) || 3,
+    safety: Number(data.safety) || 3,
+    basic_needs: Number(data.basic_needs) || 3,
+    language: language
   };
 
   // 3. Call prediction API
@@ -100,11 +93,38 @@ export async function analyzeSurveyData(data: any): Promise<AIRecommendation> {
     // Map numerical stress level to verbal
     const levelStr = p.stress_level === 2 ? "High" : p.stress_level === 1 ? "Medium" : "Low";
     
+    const featureMeta: Record<string, { label: string, color: string }> = {
+      anxiety_level: { label: "Mức độ lo âu", color: "#fb7185" },
+      depression: { label: "Trầm cảm", color: "#f43f5e" },
+      self_esteem: { label: "Lòng tự trọng", color: "#8b5cf6" },
+      mental_health_history: { label: "Tiền sử tâm lý", color: "#e11d48" },
+      blood_pressure: { label: "Huyết áp", color: "#ef4444" },
+      sleep_quality: { label: "Chất lượng ngủ", color: "#3b82f6" },
+      headache: { label: "Đau đầu", color: "#f59e0b" },
+      breathing_problem: { label: "Vấn đề hô hấp", color: "#06b6d4" },
+      study_load: { label: "Khối lượng học", color: "#8b5cf6" },
+      academic_performance: { label: "Kết quả học", color: "#10b981" },
+      teacher_student_relationship: { label: "Quan hệ thầy trò", color: "#14b8a6" },
+      future_career_concerns: { label: "Lo lắng tương lai", color: "#f59e0b" },
+      social_support: { label: "Hỗ trợ xã hội", color: "#ec4899" },
+      peer_pressure: { label: "Áp lực bạn bè", color: "#8b5cf6" },
+      extracurricular_activities: { label: "Ngoại khóa", color: "#2dd4bf" },
+      bullying: { label: "Bắt nạt", color: "#dc2626" },
+      noise_level: { label: "Tiếng ồn", color: "#9ca3af" },
+      living_conditions: { label: "Điều kiện sống", color: "#fcd34d" },
+      safety: { label: "An toàn", color: "#34d399" },
+      basic_needs: { label: "Nhu cầu cơ bản", color: "#6ee7b7" }
+    };
+
     // Convert feature dictionary to array
-    const features = Object.entries(p.feature_importance).map(([k, v]) => ({
-      feature: k,
-      importance: Math.round((v as number) * 100)
-    }));
+    const features = Object.entries(p.feature_importance).map(([k, v]) => {
+      const meta = featureMeta[k] || { label: k, color: "#cbd5e1" };
+      return {
+        feature: meta.label,
+        importance: Math.round((v as number) * 100),
+        color: meta.color
+      };
+    });
 
     // Wrap backend recommendations
     const recs = (p.recommendations || []).map((r: any) => ({

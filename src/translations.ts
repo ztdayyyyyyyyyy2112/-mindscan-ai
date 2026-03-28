@@ -1,0 +1,562 @@
+export const translations = {
+  vi: {
+    // Nav & Common
+    appName: "Mindscan.ai",
+    nav: {
+      solutions: "Giải pháp",
+      technology: "Công nghệ AI",
+      signIn: "Đăng nhập",
+      getStarted: "Bắt đầu"
+    },
+    // Hero
+    hero: {
+      badge: "AI DỰA TRÊN NGHIÊN CỨU",
+      title1: "Phát hiện Căng thẳng",
+      title2: "& Sức khỏe Tinh thần",
+      subtitle: "Khám phá một cuộc sống học tập cân bằng hơn. Công nghệ thông minh và tận tâm của chúng tôi giúp nhận diện sớm các dấu hiệu căng thẳng và đưa ra lộ trình cải thiện cá nhân hóa.",
+      btnStart: "Bắt đầu Khảo sát",
+      btnWatch: "Xem cách hoạt động",
+      statsExpert: "CHUYÊN GIA BẢO TRỢ",
+      statsAnon: "KHẢO SÁT ẨN DANH 100%",
+      statsCampus: "50+ ĐỐI TÁC ĐẠI HỌC",
+      cardTitle: "CÂN BẰNG HÀNG NGÀY",
+      cardText: "Chỉ số sức khỏe tinh thần của bạn đã cải thiện 22% tuần này."
+    },
+    // Solutions
+    solutions: {
+      title: "Công cụ Hỗ trợ Sức khỏe Tinh thần",
+      subtitle: "Chúng tôi cung cấp các công cụ cần thiết để bạn thấu hiểu bản thân và tìm thấy sự cân bằng hoàn hảo trong học đường.",
+      card1Title: "Phân tích Áp lực",
+      card1Text: "Thấu hiểu nguồn gốc căng thẳng qua các bài khảo sát ẩn danh 100%, được thiết kế riêng cho sinh viên.",
+      card2Title: "Lộ trình Phục hồi",
+      card2Text: "Nhận các định hướng cá nhân hóa về thiền định, cải thiện giấc ngủ và tài nguyên học thuật phù hợp.",
+      card3Title: "Kết nối Chuyên gia",
+      card3Text: "Kết nối nhanh chóng với mạng lưới hỗ trợ sinh viên hoặc các chuyên gia tâm lý khi bạn cần sự trợ giúp."
+    },
+    // Technology
+    tech: {
+      badge: "CÔNG NGHỆ CHUẨN ĐOÁN",
+      title: "Mindscan AI dự báo kết quả dựa vào đâu?",
+      subtitle: "Lõi hệ thống của chúng tôi là sự kết hợp chuẩn xác giữa mô hình học máy XGBoost và một bộ quy tắc khuyến nghị. Khác với những bài test truyền thống chỉ dựa vào điểm số cộng gộp đơn thuần, Mindscan AI xử lý đồng thời 20 điểm dữ liệu đầu vào để phân tích mức độ phức tạp từ các tín hiệu tâm lý, sinh lý và tương tác xã hội của sinh viên.",
+      point1Title: "Tuyệt đối Không cảm tính",
+      point1Text: "Công nghệ AI cho phép thuật toán tự động tìm ra mối liên hệ ẩn giấu sâu xa giữa 'chất lượng giấc ngủ', 'áp lực tài chính' và 'kết quả học tập' để đánh giá cường độ Stress một cách khách quan nhất.",
+      point2Title: "20 Điểm Dữ liệu Trọng yếu",
+      point2Text: "Khảo sát toàn diện qua 5 nhóm: Đặc điểm Cá nhân, Hiệu suất Học tập, Sức khỏe Tâm thần, Thể chất Sinh lý, và Giao tiếp Xã hội. Giúp chẩn đoán chính xác nguyên nhân cốt lõi.",
+      point3Title: "Bảo vệ Quyền riêng tư AI",
+      point3Text: "Mọi quá trình xử lý suy luận (Inference) hoạt động ẩn danh 100%. Thông tin dữ liệu nhạy cảm của bạn sẽ không bao giờ được ghi nhớ hay dùng để huấn luyện lại công khai nhằm mục đích thương mại.",
+      modelTitle: "Thông số kỹ thuật Model AI",
+      modelAcc: "Độ chính xác Test Set:"
+    },
+    // Footer
+    footer: {
+      desc: "Hỗ trợ Sức khỏe Tinh thần Sinh viên Toàn cầu.",
+      privacy: "Chính sách Bảo mật",
+      ethics: "Đạo đức Nghiên cứu",
+      partners: "Đối tác Đại học",
+      careers: "Tuyển dụng"
+    },
+    // Consent
+    consent: {
+      title: "Informed Consent & Quyền riêng tư",
+      welcome: "Chào mừng bạn đến với MindScan AI. Trước khi bắt đầu, vui lòng đọc kỹ các điều khoản sau:",
+      h1: "1. Mục đích khảo sát",
+      p1: "Khảo sát này nhằm mục đích thu thập thông tin về thói quen sinh hoạt, học tập và mức độ căng thẳng của sinh viên để hệ thống AI có thể đưa ra các gợi ý cải thiện sức khỏe tâm thần cá nhân hóa.",
+      h2: "2. Bảo mật & Ẩn danh",
+      p2: "Tất cả dữ liệu của bạn được thu thập hoàn toàn ẩn danh. Chúng tôi không yêu cầu tên, email hay Mã số sinh viên (MSSV). Dữ liệu chỉ được sử dụng cho mục đích phân tích cá nhân của bạn trong phiên làm việc này.",
+      h3: "3. Giới hạn của AI",
+      p3: "MindScan AI là một công cụ sàng lọc sơ bộ dựa trên mô hình học máy. Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.",
+      btnDecline: "Từ chối & Quay lại",
+      btnAccept: "Tôi đồng ý & Bắt đầu"
+    },
+    // Buttons & Progress
+    survey: {
+      step: "Bước",
+      completed: "Hoàn thành",
+      btnPrev: "Quay lại",
+      btnNext: "Tiếp tục",
+      btnSubmit: "Hoàn thành & Phân tích",
+      analyzingTitle: "Đang phân tích dữ liệu...",
+      analyzingDesc: "Hệ thống AI đang đánh giá mức độ stress và tạo lộ trình cá nhân hóa cho bạn."
+    },
+    // Questions (Steps 1-5)
+    questions: {
+      s1Title: "Nhóm 1: Thông tin chung & Học tập",
+      q1: "1. Độ tuổi hiện tại của bạn?",
+      q2: "2. Giới tính của bạn?",
+      genderMale: "Nam",
+      genderFemale: "Nữ",
+      genderOther: "Khác",
+      q3: "3. Đánh giá kết quả học tập (0 = Rất tệ, 5 = Xuất sắc)?",
+      q4: "4. Khối lượng học tập (0 = Rất nhẹ, 5 = Rất nặng)?",
+      q5: "5. Mối quan hệ với giảng viên (0 = Rất tệ, 5 = Rất tốt)?",
+      q6: "6. Áp lực tương lai/nghề nghiệp (0 = Không, 5 = Cực lớn)?",
+
+      s2Title: "Nhóm 2: Tâm lý & Cảm xúc",
+      q7: "7. Mức độ lo âu (Anxiety: 0 - 21)?",
+      q8: "8. Mức độ trầm cảm (Depression: 0 - 27)?",
+      q9: "9. Sự tự tin (Self Esteem: 0 - 30)?",
+      q10: "10. Tiền sử bệnh tâm lý?",
+      yes: "Có",
+      no: "Không",
+
+      s3Title: "Nhóm 3: Thể chất & Sinh lý",
+      q11: "11. Huyết áp của bạn?",
+      bpLow: "Thấp (1)",
+      bpNormal: "Bình thường (2)",
+      bpHigh: "Cao (3)",
+      q12: "12. Chất lượng giấc ngủ (0 = Tệ nhất, 5 = Tốt nhất)?",
+      q13: "13. Tần suất đau đầu (0 = Không bao giờ, 5 = Liên tục)?",
+      q14: "14. Khó thở/Hoảng hốt (0 = Không, 5 = Thường xuyên)?",
+
+      s4Title: "Nhóm 4: Xã hội & Cảm xúc",
+      q15: "15. Hỗ trợ xã hội/gia đình (0 = Không, 3 = Rất nhiều)?",
+      q16: "16. Áp lực đồng trang lứa (0 = Không, 5 = Quá lớn)?",
+      q17: "17. Hoạt động ngoại khóa (0 = Không, 5 = Rất tích cực)?",
+      q18: "18. Bạn có bị bắt nạt không (0 = Không, 5 = Bị khủng hoảng)?",
+
+      s5Title: "Nhóm 5: Môi trường & Cuộc sống",
+      q19: "19. Mức độ tiếng ồn nơi ở (0 = Tĩnh lặng, 5 = Quá ồn)?",
+      q20: "20. Điều kiện sống chung (0 = Rất tệ, 5 = Rất tốt)?",
+      q21: "21. Cảm giác an toàn ở nơi ở (0 = Nguy hiểm, 5 = An toàn tuyệt đối)?",
+      q22: "22. Mức độ đáp ứng nhu cầu cơ bản (0 = Không, 5 = Đầy đủ)?"
+    },
+    // Results & Emergency
+    results: {
+      gaugeTitle: "Mức độ Stress Hiện tại:",
+      gaugeConf: "Độ Tự tin (Confidence):",
+      low: "THẤP",
+      medium: "TRUNG BÌNH",
+      high: "CAO",
+      featureTitle: "Yếu tố tác động (Feature Importance) - Phiên hiện tại",
+      historyTitle: "Lịch sử ẩn danh (Lịch sử stress)",
+      recsTitle: "Thẻ hành động (Action Cards)",
+      disclaimer: "Lời khẳng định kết quả AI này không thay thế chẩn đoán y khoa của chuyên gia. Mục đích của công cụ chỉ là sàng lọc sơ bộ phục vụ giáo dục và nghiên cứu.",
+      consentConfirmed: "Informed Consent confirmed.",
+      btnHome: "Quay lại trang chủ",
+      errorTitle: "Đã có lỗi xảy ra",
+      errorDesc: "Không thể phân tích dữ liệu lúc này. Vui lòng thử lại sau."
+    },
+    emergency: {
+      title: "Cảnh báo Khẩn cấp",
+      desc: "Mức độ stress của bạn đang ở mức rất cao. Đừng ngần ngại tìm kiếm sự trợ giúp chuyên nghiệp ngay lập tức. Bạn không đơn độc!",
+      hotlineLabel: "Hotline hỗ trợ tâm lý (24/7)",
+      btnCall: "Gọi ngay",
+      clinic: "Hoặc liên hệ Phòng Tư vấn Tâm lý của trường tại Phòng A1.102 (Giờ hành chính).",
+      btnUnderstand: "Tôi đã hiểu và sẽ tìm sự trợ giúp"
+    }
+  },
+
+  en: {
+    appName: "Mindscan.ai",
+    nav: {
+      solutions: "Solutions",
+      technology: "Technology",
+      signIn: "Sign In",
+      getStarted: "Get Started"
+    },
+    hero: {
+      badge: "RESEARCH-BASED AI",
+      title1: "Student Stress Detection",
+      title2: "& Mental Wellness",
+      subtitle: "Discover a more balanced academic life. Our smart, supportive technology identifies stress patterns early and provides personalized wellness steps to keep you thriving.",
+      btnStart: "Start Stress Survey",
+      btnWatch: "See how it works",
+      statsExpert: "EXPERT BACKED",
+      statsAnon: "100% ANONYMIZED SURVEY",
+      statsCampus: "50+ CAMPUS PARTNERS",
+      cardTitle: "DAILY BALANCE",
+      cardText: "Your wellness index has improved by 22% this week."
+    },
+    solutions: {
+      title: "Supportive Wellness Tools",
+      subtitle: "We provide the tools you need to understand your mental health and find your perfect balance on campus.",
+      card1Title: "Stress Insights",
+      card1Text: "Understand your stressors through 100% anonymous, data-backed surveys designed for students.",
+      card2Title: "Wellness Paths",
+      card2Text: "Get tailored recommendations for meditation, study breaks, and campus resources based on your needs.",
+      card3Title: "Peer & Pro Support",
+      card3Text: "Quickly connect with student support groups or professional counselors whenever you need a hand."
+    },
+    tech: {
+      badge: "DIAGNOSTIC TECHNOLOGY",
+      title: "How does Mindscan AI predict results?",
+      subtitle: "Our system combines an advanced XGBoost machine learning model with a rule-based recommendation engine. Unlike traditional additive tests, Mindscan AI processes 20 data points simultaneously to map the complexity of psychological, physiological, and social signals.",
+      point1Title: "Absolutely Objective",
+      point1Text: "AI technology allows the algorithm to automatically uncover deep hidden links between 'sleep quality', 'financial pressure', and 'academic results' to assess stress intensity objectively.",
+      point2Title: "20 Key Data Points",
+      point2Text: "Comprehensive evaluation across 5 groups: Demographics, Academic Performance, Mental Health, Physiology, and Social Interaction. Assisting in accurately diagnosing root causes.",
+      point3Title: "AI Privacy Protection",
+      point3Text: "All inference processing is 100% anonymous. Your sensitive data will never be stored or publicly retrained for commercial purposes.",
+      modelTitle: "AI Model Technical Specs",
+      modelAcc: "Test Set Accuracy:"
+    },
+    footer: {
+      desc: "Supporting Student Wellness Worldwide.",
+      privacy: "Privacy Policy",
+      ethics: "Research Ethics",
+      partners: "Campus Partners",
+      careers: "Careers"
+    },
+    consent: {
+      title: "Informed Consent & Privacy",
+      welcome: "Welcome to MindScan AI. Before starting, please read these terms carefully:",
+      h1: "1. Survey Purpose",
+      p1: "This survey aims to collect data on student lifestyle habits, academics, and stress levels to generate personalized mental health recommendations via AI.",
+      h2: "2. Privacy & Anonymity",
+      p2: "All data is collected completely anonymously. We do not require names, emails, or student IDs. Data is only used for your personal analysis during this session.",
+      h3: "3. ML Limitations",
+      p3: "MindScan AI is a preliminary screening tool based on machine learning. Results do not substitute medical diagnoses or professional psychiatric advice.",
+      btnDecline: "Decline & Go Back",
+      btnAccept: "I Agree & Start"
+    },
+    survey: {
+      step: "Step",
+      completed: "Completed",
+      btnPrev: "Previous",
+      btnNext: "Next",
+      btnSubmit: "Complete & Analyze",
+      analyzingTitle: "Analyzing Your Data...",
+      analyzingDesc: "Our AI is evaluating your stress levels and generating a personalized roadmap for you."
+    },
+    questions: {
+      s1Title: "Group 1: Demographics & Academics",
+      q1: "1. What is your current age?",
+      q2: "2. What is your gender?",
+      genderMale: "Male",
+      genderFemale: "Female",
+      genderOther: "Other",
+      q3: "3. Academic performance (0 = Very Poor, 5 = Excellent)?",
+      q4: "4. Study load (0 = Very Light, 5 = Very Heavy)?",
+      q5: "5. Relationship with faculty (0 = Very Poor, 5 = Excellent)?",
+      q6: "6. Future career anxiety (0 = None, 5 = Extreme)?",
+
+      s2Title: "Group 2: Mental Health & Emotions",
+      q7: "7. Anxiety level (0 - 21)?",
+      q8: "8. Depression level (0 - 27)?",
+      q9: "9. Self Esteem score (0 - 30)?",
+      q10: "10. History of mental illness?",
+      yes: "Yes",
+      no: "No",
+
+      s3Title: "Group 3: Physiology & Sleep",
+      q11: "11. Blood pressure?",
+      bpLow: "Low (1)",
+      bpNormal: "Normal (2)",
+      bpHigh: "High (3)",
+      q12: "12. Sleep quality (0 = Worst, 5 = Best)?",
+      q13: "13. Headache frequency (0 = Never, 5 = Constant)?",
+      q14: "14. Breathing problems / Panic (0 = None, 5 = Often)?",
+
+      s4Title: "Group 4: Social & Emotional",
+      q15: "15. Social/Family support (0 = None, 3 = High)?",
+      q16: "16. Peer pressure (0 = None, 5 = Extreme)?",
+      q17: "17. Extracurricular activities (0 = None, 5 = Highly active)?",
+      q18: "18. Have you been bullied (0 = No, 5 = Extremely)?",
+
+      s5Title: "Group 5: Environment & Living",
+      q19: "19. Living area noise level (0 = Quiet, 5 = Extremely noisy)?",
+      q20: "20. Living conditions (0 = Very poor, 5 = Excellent)?",
+      q21: "21. Sense of safety at home (0 = Dangerous, 5 = Perfectly safe)?",
+      q22: "22. Basic needs met (0 = Not at all, 5 = Fully met)?"
+    },
+    results: {
+      gaugeTitle: "Current Stress Level:",
+      gaugeConf: "Confidence:",
+      low: "LOW",
+      medium: "MEDIUM",
+      high: "HIGH",
+      featureTitle: "Feature Importance - Current Session",
+      historyTitle: "Anonymous History (Stress Trends)",
+      recsTitle: "Action Cards",
+      disclaimer: "These AI results do not replace a professional medical diagnosis. This tool is for preliminary educational and research screening only.",
+      consentConfirmed: "Informed Consent confirmed.",
+      btnHome: "Return to Home",
+      errorTitle: "An Error Occurred",
+      errorDesc: "Unable to analyze data at this time. Please try again later."
+    },
+    emergency: {
+      title: "Emergency Alert",
+      desc: "Your stress levels are extremely high right now. Please do not hesitate to seek professional help immediately. You are not alone!",
+      hotlineLabel: "24/7 Mental Health Hotline",
+      btnCall: "Call Now",
+      clinic: "Or contact your University Counseling Center at Room A1.102 (Business hours).",
+      btnUnderstand: "I understand and will seek help"
+    }
+  },
+
+  de: {
+    appName: "Mindscan.ai",
+    nav: {
+      solutions: "Lösungen",
+      technology: "Technologie",
+      signIn: "Anmelden",
+      getStarted: "Loslegen"
+    },
+    hero: {
+      badge: "FORSCHUNGSBASIERTE KI",
+      title1: "Studentische Stresserkennung",
+      title2: "& Mentale Gesundheit",
+      subtitle: "Entdecken Sie ein ausgewogeneres akademisches Leben. Unsere smarte Technologie erkennt Stressmuster frühzeitig und bietet personalisierte Wellness-Schritte.",
+      btnStart: "Umfrage starten",
+      btnWatch: "So funktioniert's",
+      statsExpert: "VON EXPERTEN GESTÜTZT",
+      statsAnon: "100% ANONYME UMFRAGE",
+      statsCampus: "50+ UNI-PARTNER",
+      cardTitle: "TÄGLICHE BALANCE",
+      cardText: "Ihr Gesundheitsindex hat sich diese Woche um 22% verbessert."
+    },
+    solutions: {
+      title: "Unterstützende Wellness-Tools",
+      subtitle: "Wir bieten die Werkzeuge, die Sie brauchen, um Ihre mentale Gesundheit zu verstehen und die perfekte Balance zu finden.",
+      card1Title: "Stress-Einblicke",
+      card1Text: "Verstehen Sie Ihre Stressfaktoren durch 100% anonyme, datengestützte Umfragen, speziell für Studierende.",
+      card2Title: "Wellness-Pfade",
+      card2Text: "Erhalten Sie personalisierte Empfehlungen für Meditation, Lernpausen und Campus-Ressourcen.",
+      card3Title: "Peer- & Profi-Support",
+      card3Text: "Verbinden Sie sich schnell mit studentischen Selbsthilfegruppen oder professionellen Beratern."
+    },
+    tech: {
+      badge: "DIAGNOSTISCHE TECHNOLOGIE",
+      title: "Worauf basiert Mindscan AI?",
+      subtitle: "Unser Kernsystem ist eine präzise Kombination aus einem XGBoost-Machine-Learning-Modell und einem regelbasierten Empfehlungssystem. Im Gegensatz zu herkömmlichen Tests verarbeitet Mindscan AI 20 Datenpunkte gleichzeitig.",
+      point1Title: "Absolut objektiv",
+      point1Text: "KI-Technologie ermöglicht es, verborgene Muster zwischen Schlafqualität, Finanzdruck und Noten zu finden, um Stress objektiv zu bewerten.",
+      point2Title: "20 Wichtige Datenpunkte",
+      point2Text: "Umfassende Bewertung in 5 Bereichen: Demografie, Akademische Leistung, Mentale Gesundheit, Physiologie und Soziales.",
+      point3Title: "KI Datenschutz",
+      point3Text: "Alle Inferenzprozesse laufen zu 100% anonym ab. Ihre sensiblen Daten werden niemals für kommerzielles Retraining gespeichert.",
+      modelTitle: "Technische KI-Spezifikationen",
+      modelAcc: "Test-Set Genauigkeit:"
+    },
+    footer: {
+      desc: "Unterstützung der mentalen Gesundheit von Studierenden weltweit.",
+      privacy: "Datenschutzerklärung",
+      ethics: "Forschungsethik",
+      partners: "Campus-Partner",
+      careers: "Karriere"
+    },
+    consent: {
+      title: "Einverständniserklärung & Datenschutz",
+      welcome: "Willkommen bei MindScan AI. Bitte lesen Sie dies sorgfältig durch:",
+      h1: "1. Zweck der Umfrage",
+      p1: "Diese Umfrage sammelt Daten zu studentischen Lebensgewohnheiten und Stress, um personalisierte Empfehlungen zu generieren.",
+      h2: "2. Datenschutz & Anonymität",
+      p2: "Alle Daten werden absolut anonym erfasst. Wir benötigen keine Namen, E-Mails oder Matrikelnummern.",
+      h3: "3. Grenzen der KI",
+      p3: "Diese App ist ein Screening-Tool. Ergebnisse ersetzen keine ärztliche Diagnose.",
+      btnDecline: "Ablehnen & Zurück",
+      btnAccept: "Zustimmen & Starten"
+    },
+    survey: {
+      step: "Schritt",
+      completed: "Abgeschlossen",
+      btnPrev: "Zurück",
+      btnNext: "Weiter",
+      btnSubmit: "Abschließen & Analysieren",
+      analyzingTitle: "Daten werden analysiert...",
+      analyzingDesc: "Die KI bewertet Ihren Stress-Level und erstellt einen personalisierten Plan."
+    },
+    questions: {
+      s1Title: "Gruppe 1: Allgemeine Infos & Studium",
+      q1: "1. Ihr aktuelles Alter?",
+      q2: "2. Ihr Geschlecht?",
+      genderMale: "Männlich",
+      genderFemale: "Weiblich",
+      genderOther: "Divers",
+      q3: "3. Akademische Leistung (0 = Sehr schlecht, 5 = Ausgezeichnet)?",
+      q4: "4. Studienbelastung (0 = Sehr leicht, 5 = Sehr schwer)?",
+      q5: "5. Verhältnis zu Dozenten (0 = Sehr schlecht, 5 = Sehr gut)?",
+      q6: "6. Zukunftsangst bzgl. Karriere (0 = Keine, 5 = Extrem)?",
+
+      s2Title: "Gruppe 2: Psychologie & Emotionen",
+      q7: "7. Angstniveau (Anxiety: 0 - 21)?",
+      q8: "8. Depressionsniveau (Depression: 0 - 27)?",
+      q9: "9. Selbstwertgefühl (Self Esteem: 0 - 30)?",
+      q10: "10. Vorgeschichte psychischer Erkrankungen?",
+      yes: "Ja",
+      no: "Nein",
+
+      s3Title: "Gruppe 3: Physiologie & Schlaf",
+      q11: "11. Blutdruck?",
+      bpLow: "Niedrig (1)",
+      bpNormal: "Normal (2)",
+      bpHigh: "Hoch (3)",
+      q12: "12. Schlafqualität (0 = Schlechteste, 5 = Beste)?",
+      q13: "13. Kopfschmerzhäufigkeit (0 = Nie, 5 = Ständig)?",
+      q14: "14. Atemnot/Panik (0 = Nie, 5 = Oft)?",
+
+      s4Title: "Gruppe 4: Soziales & Emotionales",
+      q15: "15. Soziale Unterstützung (0 = Keine, 3 = Viel)?",
+      q16: "16. Gruppenzwang (0 = Keiner, 5 = Extrem)?",
+      q17: "17. Außerschulische Aktivitäten (0 = Keine, 5 = Sehr aktiv)?",
+      q18: "18. Wurden Sie gemobbt (0 = Nein, 5 = Extrem)?",
+
+      s5Title: "Gruppe 5: Umwelt & Leben",
+      q19: "19. Lärmbelästigung (0 = Ruhig, 5 = Sehr laut)?",
+      q20: "20. Wohnbedingungen (0 = Sehr schlecht, 5 = Sehr gut)?",
+      q21: "21. Sicherheitsgefühl zu Hause (0 = Gefährlich, 5 = Sehr sicher)?",
+      q22: "22. Grundbedürfnisse gedeckt (0 = Überhaupt nicht, 5 = Vollständig)?"
+    },
+    results: {
+      gaugeTitle: "Aktueller Stress-Level:",
+      gaugeConf: "Konfidenz:",
+      low: "NIEDRIG",
+      medium: "MITTEL",
+      high: "HOCH",
+      featureTitle: "Einflussfaktoren - Aktuelle Sitzung",
+      historyTitle: "Anonymer Verlauf (Stress-Trend)",
+      recsTitle: "Handlungsempfehlungen",
+      disclaimer: "Die Ergebnisse dieser KI ersetzen keine fachärztliche Diagnose. Dieses Tool dient nur Bildungszwecken.",
+      consentConfirmed: "Informed Consent bestätigt.",
+      btnHome: "Zur Startseite",
+      errorTitle: "Ein Fehler ist aufgetreten",
+      errorDesc: "Daten können momentan nicht analysiert werden. Bitte versuchen Sie es später erneut."
+    },
+    emergency: {
+      title: "Notfallmeldung",
+      desc: "Ihr Stresslevel ist derzeit extrem hoch. Bitte suchen Sie umgehend professionelle Hilfe. Sie sind nicht allein!",
+      hotlineLabel: "24/7 Psychologische Hotline",
+      btnCall: "Jetzt anrufen",
+      clinic: "Oder kontaktieren Sie die psychologische Beratung der Universität in Raum A1.102.",
+      btnUnderstand: "Ich habe verstanden und werde mir Hilfe suchen"
+    }
+  },
+
+  zh: {
+    appName: "Mindscan.ai",
+    nav: {
+      solutions: "解决方案",
+      technology: "AI技术",
+      signIn: "登录",
+      getStarted: "开始探索"
+    },
+    hero: {
+      badge: "基于研究的 AI",
+      title1: "学生压力检测",
+      title2: "与心理健康",
+      subtitle: "发现更平衡的学术生活。我们的智能技术尽早识别压力模式，并提供个性化的健康步骤。",
+      btnStart: "开始压力测试",
+      btnWatch: "工作原理",
+      statsExpert: "专家支持",
+      statsAnon: "100% 匿名调查",
+      statsCampus: "50+ 大学合作伙伴",
+      cardTitle: "每日平衡",
+      cardText: "您的本周健康指数提升了 22%。"
+    },
+    solutions: {
+      title: "支持性心理健康工具",
+      subtitle: "我们提供了解您的心理健康并在校园内寻找完美平衡所需的工具。",
+      card1Title: "压力洞察",
+      card1Text: "通过专为学生设计的、100% 匿名的数据支持调查，了解您的压力源。",
+      card2Title: "健康路径",
+      card2Text: "根据您的需求获得冥想、学习休息和校园资源的量身定制建议。",
+      card3Title: "同伴与专业支持",
+      card3Text: "在需要帮助时，快速联系学生支持小组或专业辅导员。"
+    },
+    tech: {
+      badge: "诊断技术",
+      title: "Mindscan AI 如何预测结果？",
+      subtitle: "我们的核心系统结合了先进的 XGBoost 机器学习模型和基于规则的推荐引擎。Mindscan AI 同时处理20个数据点以映射复杂的心理、生理和社会信号。",
+      point1Title: "绝对客观",
+      point1Text: "AI 算法自动发现睡眠质量、财务压力和学习成绩之间隐藏的深层联系，从而客观评估压力强度。",
+      point2Title: "20 个关键数据点",
+      point2Text: "跨 5 个类别进行全面评估：个人特征、学业表现、心理健康、生理健康和社交互动。",
+      point3Title: "AI 隐私保护",
+      point3Text: "所有的推理过程都是 100% 匿名的。您的敏感数据永远不会被记忆或为了商业目的被重新训练。",
+      modelTitle: "AI 模型技术规格",
+      modelAcc: "测试集准确率："
+    },
+    footer: {
+      desc: "支持全球学生的心理健康。",
+      privacy: "隐私政策",
+      ethics: "研究伦理",
+      partners: "校园合作伙伴",
+      careers: "人才招聘"
+    },
+    consent: {
+      title: "知情同意与隐私",
+      welcome: "欢迎使用 MindScan AI。在开始之前，请仔细阅读以下条款：",
+      h1: "1. 调查目的",
+      p1: "本调查旨在收集学生的作息习惯、学业和压力水平，通过 AI 生成个性化的心理健康建议。",
+      h2: "2. 隐私与匿名",
+      p2: "所有数据都是完全匿名收集的。我们不要求提供姓名、电子邮件或学号。",
+      h3: "3. ML 的局限性",
+      p3: "MindScan AI 只是一个基于机器学习的初步筛查工具。结果不能代替医学诊断。",
+      btnDecline: "拒绝并返回",
+      btnAccept: "我同意并开始"
+    },
+    survey: {
+      step: "步骤",
+      completed: "完成",
+      btnPrev: "上一步",
+      btnNext: "下一步",
+      btnSubmit: "完成并分析",
+      analyzingTitle: "正在分析数据...",
+      analyzingDesc: "AI 正在评估您的压力水平并为您创建个性化路线图。"
+    },
+    questions: {
+      s1Title: "第一组：基本信息与学业",
+      q1: "1. 您的当前年龄是？",
+      q2: "2. 您的性别？",
+      genderMale: "男性",
+      genderFemale: "女性",
+      genderOther: "其他",
+      q3: "3. 学业表现 (0 = 极差, 5 = 优秀)？",
+      q4: "4. 学业负担 (0 = 极轻, 5 = 极重)？",
+      q5: "5. 师生关系 (0 = 极差, 5 = 极好)？",
+      q6: "6. 未来职业焦虑 (0 = 无, 5 = 极度焦虑)？",
+
+      s2Title: "第二组：心理与情感",
+      q7: "7. 焦虑程度 (0 - 21)？",
+      q8: "8. 抑郁程度 (0 - 27)？",
+      q9: "9. 自我评价/自尊 (0 - 30)？",
+      q10: "10. 心理疾病史？",
+      yes: "有",
+      no: "无",
+
+      s3Title: "第三组：生理与睡眠",
+      q11: "11. 血压情况？",
+      bpLow: "偏低 (1)",
+      bpNormal: "正常 (2)",
+      bpHigh: "偏高 (3)",
+      q12: "12. 睡眠质量 (0 = 最差, 5 = 最好)？",
+      q13: "13. 头痛频率 (0 = 从不, 5 = 持续痛)？",
+      q14: "14. 呼吸困难/恐慌 (0 = 无, 5 = 经常)？",
+
+      s4Title: "第四组：社交与情绪",
+      q15: "15. 社会/家庭支持 (0 = 无, 3 = 很多)？",
+      q16: "16. 同辈压力 (0 = 无, 5 = 极大)？",
+      q17: "17. 课外活动 (0 = 无, 5 = 非常活跃)？",
+      q18: "18. 您是否遭受过霸凌 (0 = 否, 5 = 极度)？",
+
+      s5Title: "第五组：环境与生活",
+      q19: "19. 居住环境噪音 (0 = 安静, 5 = 极吵)？",
+      q20: "20. 居住条件 (0 = 极差, 5 = 极好)？",
+      q21: "21. 在家的安全感 (0 = 危险, 5 = 绝对安全)？",
+      q22: "22. 基本需求满足度 (0 = 毫无满足, 5 = 充分满足)？"
+    },
+    results: {
+      gaugeTitle: "当前压力水平：",
+      gaugeConf: "置信度：",
+      low: "低",
+      medium: "中等",
+      high: "高",
+      featureTitle: "特征重要性 - 当前会话",
+      historyTitle: "匿名记录 (压力趋势)",
+      recsTitle: "行动卡片",
+      disclaimer: "AI 结果不能替代专家的医学诊断。此工具仅用于教育和研究筛查。",
+      consentConfirmed: "已确认知情同意书。",
+      btnHome: "返回主页",
+      errorTitle: "发生了错误",
+      errorDesc: "目前无法分析数据。请稍后再试一次。"
+    },
+    emergency: {
+      title: "紧急警报",
+      desc: "您目前的压力水平极高。请不要犹豫，立即寻求专业帮助。您不是一个人！",
+      hotlineLabel: "24/7 心理健康热线",
+      btnCall: "立即致电",
+      clinic: "或在办公时间前往A1.102室联系大学心理咨询中心。",
+      btnUnderstand: "我明白了，我会寻求帮助"
+    }
+  }
+};
