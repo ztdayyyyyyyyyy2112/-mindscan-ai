@@ -86,10 +86,10 @@ def predict_stress(input_data: dict) -> dict:
     try:
         importances = model.feature_importances_
         agg = {fname: float(imp) for fname, imp in zip(FEATURE_NAMES, importances)}
-        # Normalize to sum = 1, sort descending, keep top 6
-        total = sum(agg.values()) or 1.0
         sorted_items = sorted(agg.items(), key=lambda x: x[1], reverse=True)[:6]
-        feature_importance = {k: round(v / total, 4) for k, v in sorted_items}
+        # Normalize the top 6 to sum = 1
+        top_total = sum(v for k, v in sorted_items) or 1.0
+        feature_importance = {k: round(v / top_total, 4) for k, v in sorted_items}
     except Exception:
         feature_importance = {
             "anxiety_level": 0.25,
