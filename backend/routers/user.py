@@ -103,6 +103,7 @@ async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: As
             "stress_level": prediction.stress_level,
             "confidence_score": prediction.confidence_score,
             "feature_importance": ml_result.get("feature_importance", {}),
+            "feature_contributions": ml_result.get("feature_contributions", []),
             "recommendations": rec_objects
         }
     }
