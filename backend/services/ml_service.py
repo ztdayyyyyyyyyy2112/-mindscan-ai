@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import logging
+import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 
@@ -70,26 +71,39 @@ def predict_stress(input_data: dict) -> dict:
     features_df = pd.DataFrame([features], columns=FEATURE_NAMES)
     scaled_features = scaler.transform(features_df)
 
-    # Predict
     prediction = model.predict(scaled_features)
 
-    # Try probabilities
     try:
         probabilities = model.predict_proba(scaled_features)
         confidence = float(np.max(probabilities[0]))
     except Exception:
-        confidence = 1.0  # Fallback if model has no predict_proba
+        confidence = 1.0
 
     stress_level = int(prediction[0])
 
-    # --- Real Feature Importance from XGBoost model ---
+    feature_importance = {}
+    feature_contributions = []
     try:
-        importances = model.feature_importances_
-        agg = {fname: float(imp) for fname, imp in zip(FEATURE_NAMES, importances)}
-        sorted_items = sorted(agg.items(), key=lambda x: x[1], reverse=True)[:6]
-        # Normalize the top 6 to sum = 1
-        top_total = sum(v for k, v in sorted_items) or 1.0
-        feature_importance = {k: round(v / top_total, 4) for k, v in sorted_items}
+        booster = model.get_booster()
+        dmatrix = xgb.DMatrix(scaled_features, feature_names=FEATURE_NAMES)
+        contrib_matrix = booster.predict(dmatrix, pred_contribs=True)
+        if contrib_matrix.ndim == 3:
+            per_feature = contrib_matrix[0][stress_level][:-1]
+        else:
+            per_feature = contrib_matrix[0][:-1]
+        contrib_dict = {fname: float(val) for fname, val in zip(FEATURE_NAMES, per_feature)}
+        abs_pairs = [(fname, abs(val)) for fname, val in contrib_dict.items()]
+        sorted_pairs = sorted(abs_pairs, key=lambda x: x[1], reverse=True)[:6]
+        top_total = sum(val for _, val in sorted_pairs) or 1.0
+        feature_importance = {fname: round(abs(contrib_dict[fname]) / top_total, 4) for fname, _ in sorted_pairs}
+        feature_contributions = [
+            {
+                "feature": fname,
+                "contribution": contrib_dict[fname],
+                "magnitude": abs(contrib_dict[fname])
+            }
+            for fname in FEATURE_NAMES
+        ]
     except Exception:
         feature_importance = {
             "anxiety_level": 0.25,
@@ -98,9 +112,11 @@ def predict_stress(input_data: dict) -> dict:
             "study_load": 0.20,
             "social_support": 0.15
         }
+        feature_contributions = []
 
     return {
         "stress_level": stress_level,
         "confidence_score": confidence,
-        "feature_importance": feature_importance
+        "feature_importance": feature_importance,
+        "feature_contributions": feature_contributions
     }
