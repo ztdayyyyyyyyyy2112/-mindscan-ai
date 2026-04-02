@@ -164,6 +164,34 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
   );
 };
 
+type ActionCardItem = {
+  id: string;
+  title: string;
+  description: string;
+  categoryKey: string;
+};
+
+const LiquidButton = ({ children, onClick, variant = 'primary', className = "", icon: Icon }: any) => {
+  const baseStyle = "relative overflow-hidden rounded-full font-semibold px-8 py-4 transition-all duration-300 flex items-center justify-center gap-2 group";
+  const variants = {
+    primary: "bg-white/30 dark:bg-blue-600/30 backdrop-blur-2xl text-blue-700 dark:text-blue-300 border border-white/50 dark:border-blue-500/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-blue-900/40 hover:bg-white/40 dark:hover:bg-blue-600/50 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,1)] hover:-translate-y-0.5",
+    secondary: "bg-black/5 dark:bg-white/5 backdrop-blur-2xl text-slate-800 dark:text-slate-200 border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.5)] dark:shadow-slate-900/40 hover:bg-black/10 dark:hover:bg-white/10 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.6)] hover:-translate-y-0.5",
+    outline: "bg-transparent border-2 border-slate-300/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-white/5"
+  };
+
+  return (
+    <button onClick={onClick} className={`${baseStyle} ${variants[variant as keyof typeof variants]} ${className}`}>
+      {/* Liquid hover effect overlay */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer delay-100"></div>
+      <span className="relative z-10 flex items-center gap-2">
+        {children}
+        {Icon && <Icon className="w-5 h-5 transition-transform group-hover:translate-x-1" />}
+      </span>
+    </button>
+  );
+};
+
+
 export default function App() {
   const [hasConsented, setHasConsented] = useState(false);
   const [language, setLanguage] = useState<'vi' | 'en' | 'de' | 'zh'>('vi');
@@ -206,6 +234,12 @@ export default function App() {
     }
     return typeof result === 'string' ? result : key;
   };
+
+  const formatTemplate = (template: string, vars: Record<string, string | number>) =>
+    template.replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ''));
+
+  const tWith = (key: string, vars: Record<string, string | number>) =>
+    formatTemplate(t(key), vars);
 
   const [formData, setFormData] = useState({
     // Demographics
@@ -436,49 +470,38 @@ export default function App() {
   const renderConsentScreen = () => (
     <motion.div 
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-      className={`relative backdrop-blur-3xl shadow-[0_16px_48px_rgba(0,0,0,0.12),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl mx-auto text-left ${isDarkMode ? 'bg-[#0b132b]/90 border border-white/10 text-white' : 'bg-white/85 border border-sky-100/80 shadow-xl'}`}
+      className={`relative backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl w-full mx-auto text-left ${isDarkMode ? 'bg-[#0b132b]/95 border border-white/10 text-white' : 'bg-white/20 border border-white/40'}`}
     >
-      <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 dark:bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 ${isDarkMode ? 'bg-gradient-to-br from-blue-900/50 to-teal-900/50 text-blue-400 border-white/10' : 'bg-gradient-to-br from-blue-100 to-teal-100 text-blue-600 border-white'}`}>
         <ShieldCheck className="w-8 h-8" />
       </div>
-      <h2 className={`text-3xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('consent.title')}</h2>
+      <h2 className={`text-3xl font-extrabold mb-6 tracking-tight relative z-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Informed Consent & Quyền riêng tư</h2>
       
-      <div className={`space-y-4 mb-8 h-64 overflow-y-auto pr-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        <p>{t('consent.welcome')}</p>
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t('consent.h1')}</h3>
-        <p>{t('consent.p1')}</p>
+      <div className={`space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+        <p>Chào mừng bạn đến với MindScan AI. Trước khi bắt đầu, vui lòng đọc kỹ các điều khoản sau:</p>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>1. Mục đích khảo sát</h3>
+        <p>Khảo sát này nhằm mục đích thu thập thông tin về thói quen sinh hoạt, học tập và mức độ căng thẳng của sinh viên để hệ thống AI có thể đưa ra các gợi ý cải thiện sức khỏe tâm thần cá nhân hóa.</p>
         
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t('consent.h2')}</h3>
-        <p dangerouslySetInnerHTML={{ __html: t('consent.p2')
-          .replace('ẩn danh', '<strong>ẩn danh</strong>')
-          .replace('anonymously', '<strong>anonymously</strong>')
-          .replace('absolut anonym', '<strong>absolut anonym</strong>')
-          .replace('完全匿名', '<strong>完全匿名</strong>') 
-        }} />
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>2. Bảo mật & Ẩn danh</h3>
+        <p>Tất cả dữ liệu của bạn được thu thập hoàn toàn <strong>ẩn danh</strong>. Chúng tôi không yêu cầu tên, email hay Mã số sinh viên (MSSV). Dữ liệu chỉ được sử dụng cho mục đích phân tích cá nhân của bạn trong phiên làm việc này.</p>
         
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t('consent.h3')}</h3>
-        <p dangerouslySetInnerHTML={{ __html: t('consent.p3')
-          .replace('Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.', '<strong>Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.</strong>')
-          .replace('Results do not substitute medical diagnoses or professional psychiatric advice.', '<strong>Results do not substitute medical diagnoses or professional psychiatric advice.</strong>')
-          .replace('Ergebnisse ersetzen keine ärztliche Diagnose.', '<strong>Ergebnisse ersetzen keine ärztliche Diagnose.</strong>')
-          .replace('结果不能代替医学诊断。', '<strong>结果不能代替医学诊断。</strong>')
-        }} />
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>3. Giới hạn của AI</h3>
+        <p>MindScan AI là một công cụ sàng lọc sơ bộ dựa trên mô hình học máy. <strong>Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.</strong></p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-end">
-        <button 
+      <div className="flex flex-col sm:flex-row gap-4 justify-end relative z-10">
+        <LiquidButton 
+          variant="secondary"
           onClick={() => setIsSurveyOpen(false)}
-          className={`px-6 py-3 rounded-xl font-medium transition-all backdrop-blur-sm ${isDarkMode ? 'text-gray-300 bg-white/10 border border-white/20 hover:bg-white/20' : 'text-gray-600 bg-white/20 border border-white/30 hover:bg-white/30'}`}
         >
-          {t('consent.btnDecline')}
-        </button>
-        <button 
+          Từ chối & Quay lại
+        </LiquidButton>
+        <LiquidButton 
           onClick={acceptConsent}
-          className={`relative overflow-hidden group px-8 py-3 rounded-full font-semibold transition-all duration-300 shadow-[0_8px_32px_rgba(59,130,246,0.2)] hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600 text-white border border-blue-500/50 hover:bg-blue-500' : 'bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 hover:bg-white/50'}`}
         >
-          <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-          {t('consent.btnAccept')}
-        </button>
+          Tôi đồng ý & Bắt đầu
+        </LiquidButton>
       </div>
     </motion.div>
   );
@@ -809,6 +832,175 @@ export default function App() {
         return null;
     }
   };
+
+  const buildInsightCopy = (result: AIRecommendation) => {
+    const sorted = [...result.feature_importance].sort((a, b) => b.importance - a.importance);
+    const formatTop = (count: number) =>
+      sorted
+        .slice(0, count)
+        .map((item) => `${item.feature} (${Math.round(item.importance)}%)`)
+        .join(', ');
+
+    const levelLabel = t(`results.${result.stress_level.toLowerCase()}`);
+    const confidencePct = Math.round(result.confidence_score * 100);
+    const primary = sorted[0]?.feature;
+    const secondary = sorted[1]?.feature;
+
+    switch (language) {
+      case 'en':
+        return {
+          trends: `Current stress level: ${levelLabel} (confidence ${confidencePct}%). Top trends: ${formatTop(3)}.`,
+          touchpoints: `Strongest drivers: ${formatTop(2)}. Prioritize ${primary}${secondary ? ` and ${secondary}` : ''}.`
+        };
+      case 'de':
+        return {
+          trends: `Aktueller Stress-Level: ${levelLabel} (Konfidenz ${confidencePct}%). Wichtigste Trends: ${formatTop(3)}.`,
+          touchpoints: `Stärkste Einflussfaktoren: ${formatTop(2)}. Priorisieren Sie ${primary}${secondary ? ` und ${secondary}` : ''}.`
+        };
+      case 'zh':
+        return {
+          trends: `当前压力水平：${levelLabel}（置信度 ${confidencePct}%）。主要趋势：${formatTop(3)}。`,
+          touchpoints: `影响最大的因素：${formatTop(2)}。优先关注 ${primary}${secondary ? ` 与 ${secondary}` : ''}。`
+        };
+      default:
+        return {
+          trends: `Mức stress hiện tại: ${levelLabel} (độ tin cậy ${confidencePct}%). Xu hướng chính: ${formatTop(3)}.`,
+          touchpoints: `Các yếu tố ảnh hưởng mạnh nhất: ${formatTop(2)}. Ưu tiên theo dõi ${primary}${secondary ? ` và ${secondary}` : ''}.`
+        };
+    }
+  };
+
+  const insightCopy = aiResult ? buildInsightCopy(aiResult) : null;
+  const insightMeta = aiResult
+    ? {
+        levelLabel: t(`results.${aiResult.stress_level.toLowerCase()}`),
+        confidencePct: Math.round(aiResult.confidence_score * 100),
+        topFeatures: [...aiResult.feature_importance].sort((a, b) => b.importance - a.importance).slice(0, 2)
+      }
+    : null;
+
+  const levelBadgeClass = (level?: string) => {
+    if (level === 'High') return isDarkMode ? 'bg-rose-900/40 text-rose-300 border-rose-800/50' : 'bg-rose-50 text-rose-700 border-rose-100';
+    if (level === 'Medium') return isDarkMode ? 'bg-amber-900/40 text-amber-300 border-amber-800/50' : 'bg-amber-50 text-amber-700 border-amber-100';
+    return isDarkMode ? 'bg-emerald-900/40 text-emerald-300 border-emerald-800/50' : 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  };
+
+  const buildPersonalizedActionCards = (result: AIRecommendation, data: typeof formData): ActionCardItem[] => {
+    const cards: ActionCardItem[] = [];
+
+    const addCard = (card: ActionCardItem) => {
+      if (!cards.some(existing => existing.id === card.id)) {
+        cards.push(card);
+      }
+    };
+
+    const addTemplate = (
+      id: string,
+      categoryKey: string,
+      titleKey: string,
+      descKey: string,
+      vars: Record<string, string | number> = {}
+    ) => {
+      addCard({
+        id,
+        categoryKey,
+        title: t(titleKey),
+        description: tWith(descKey, vars)
+      });
+    };
+
+    const sleepScore = Number(data.sleep_quality);
+    const studyLoadScore = Number(data.study_load);
+    const academicScore = Number(data.academic_performance);
+    const anxietyScore = Number(data.anxiety_level);
+    const depressionScore = Number(data.depression);
+    const supportScore = Number(data.social_support);
+    const peerScore = Number(data.peer_pressure);
+    const bullyingScore = Number(data.bullying);
+    const activityScore = Number(data.extracurricular_activities);
+    const needsScore = Math.min(Number(data.basic_needs), Number(data.living_conditions));
+    const reliefScore = Math.max(Number(data.headache), Number(data.breathing_problem));
+
+    if (sleepScore <= 2) {
+      addTemplate('auto-sleep-reset', 'sleep', 'results.actionCards.sleepTitle', 'results.actionCards.sleepDesc', { score: sleepScore });
+    }
+    if (studyLoadScore >= 4) {
+      addTemplate('auto-study-load', 'study', 'results.actionCards.studyLoadTitle', 'results.actionCards.studyLoadDesc', { score: studyLoadScore });
+    }
+    if (academicScore <= 2) {
+      addTemplate('auto-study-focus', 'study', 'results.actionCards.studyFocusTitle', 'results.actionCards.studyFocusDesc', { score: academicScore });
+    }
+    if (anxietyScore >= 14) {
+      addTemplate('auto-anxiety', 'mental', 'results.actionCards.anxietyTitle', 'results.actionCards.anxietyDesc', { score: anxietyScore });
+    }
+    if (depressionScore >= 14) {
+      addTemplate('auto-mood', 'mental', 'results.actionCards.moodTitle', 'results.actionCards.moodDesc', { score: depressionScore });
+    }
+    if (supportScore <= 1) {
+      addTemplate('auto-support', 'social', 'results.actionCards.supportTitle', 'results.actionCards.supportDesc', { score: supportScore });
+    }
+    if (peerScore >= 4) {
+      addTemplate('auto-peer-pressure', 'social', 'results.actionCards.peerTitle', 'results.actionCards.peerDesc', { score: peerScore });
+    }
+    if (bullyingScore >= 3) {
+      addTemplate('auto-bullying', 'social', 'results.actionCards.bullyingTitle', 'results.actionCards.bullyingDesc', { score: bullyingScore });
+    }
+    if (activityScore <= 1) {
+      addTemplate('auto-activity', 'exercise', 'results.actionCards.activityTitle', 'results.actionCards.activityDesc', { score: activityScore });
+    }
+    if (needsScore <= 2) {
+      addTemplate('auto-needs', 'finance', 'results.actionCards.needsTitle', 'results.actionCards.needsDesc', { score: needsScore });
+    }
+    if (reliefScore >= 3) {
+      addTemplate('auto-relief', 'mental', 'results.actionCards.reliefTitle', 'results.actionCards.reliefDesc', { score: reliefScore });
+    }
+    if (result.stress_level === 'High') {
+      addTemplate('auto-high-stress', 'mental', 'results.actionCards.highStressTitle', 'results.actionCards.highStressDesc');
+    }
+
+    const topFeature = [...result.feature_importance].sort((a, b) => b.importance - a.importance)[0];
+    if (topFeature) {
+      addTemplate('auto-top-driver', 'general', 'results.actionCards.topDriverTitle', 'results.actionCards.topDriverDesc', {
+        feature: topFeature.feature,
+        pct: Math.round(topFeature.importance)
+      });
+    }
+
+    const fallbackTemplates = [
+      { id: 'auto-breathe', categoryKey: 'mental', titleKey: 'results.actionCards.breatheTitle', descKey: 'results.actionCards.breatheDesc' },
+      { id: 'auto-breaks', categoryKey: 'study', titleKey: 'results.actionCards.breaksTitle', descKey: 'results.actionCards.breaksDesc' },
+      { id: 'auto-connect', categoryKey: 'social', titleKey: 'results.actionCards.connectTitle', descKey: 'results.actionCards.connectDesc' },
+      { id: 'auto-hydrate', categoryKey: 'exercise', titleKey: 'results.actionCards.hydrateTitle', descKey: 'results.actionCards.hydrateDesc' },
+      { id: 'auto-week-plan', categoryKey: 'study', titleKey: 'results.actionCards.weekPlanTitle', descKey: 'results.actionCards.weekPlanDesc' }
+    ];
+
+    for (const fallback of fallbackTemplates) {
+      if (cards.length >= 5) break;
+      addTemplate(fallback.id, fallback.categoryKey, fallback.titleKey, fallback.descKey);
+    }
+
+    return cards;
+  };
+
+  const actionCards: ActionCardItem[] = aiResult
+    ? (() => {
+        const base = aiResult.recommendations.map((rec) => ({
+          id: rec.id,
+          title: rec.title,
+          description: rec.description,
+          categoryKey: (rec as any).categoryKey || 'general'
+        }));
+        const personalized = buildPersonalizedActionCards(aiResult, formData);
+        const merged: ActionCardItem[] = [];
+        const seen = new Set<string>();
+        for (const card of [...base, ...personalized]) {
+          if (seen.has(card.id)) continue;
+          seen.add(card.id);
+          merged.push(card);
+        }
+        return merged;
+      })()
+    : [];
 
   return (
     <div className={`min-h-screen font-sans text-[#0b132b] relative overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'dark bg-gradient-to-br from-[#020510] via-[#0a0f1e] to-[#0d1b3e]' : 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100'}`}>
@@ -1343,7 +1535,7 @@ export default function App() {
                       <BarChart2 className="w-7 h-7" />
                     </div>
                     <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card1Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
                       {t('solutions.card1Text')}
                     </p>
                   </div>
@@ -1360,7 +1552,7 @@ export default function App() {
                       <Leaf className="w-7 h-7" />
                     </div>
                     <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card2Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
                       {t('solutions.card2Text')}
                     </p>
                   </div>
@@ -1377,7 +1569,7 @@ export default function App() {
                       <HeartHandshake className="w-7 h-7" />
                     </div>
                     <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card3Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
                       {t('solutions.card3Text')}
                     </p>
                   </div>
@@ -1494,7 +1686,7 @@ export default function App() {
             key="consent"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="container mx-auto px-6 py-12"
+            className="container mx-auto px-6 min-h-[100dvh] flex flex-col items-center justify-center py-24"
           >
             {renderConsentScreen()}
           </motion.div>
@@ -1503,7 +1695,7 @@ export default function App() {
             key="survey"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="container mx-auto px-6 py-12 max-w-3xl"
+            className="container mx-auto px-6 min-h-[100dvh] flex flex-col items-center justify-center py-24 max-w-3xl w-full"
           >
             {!isCompleted ? (
               <div className={`relative rounded-[2rem] overflow-hidden p-8 md:p-12 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/80 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
@@ -1597,13 +1789,64 @@ export default function App() {
                       <CustomStackedBar data={aiResult.feature_importance} height="h-16" />
                     </div>
 
+                    {/* 2.5. Tổng hợp kết quả khảo sát */}
+                    <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-gradient-to-br from-slate-900/70 via-slate-900/40 to-slate-800/40 border-white/10' : 'bg-gradient-to-br from-white/80 via-white/60 to-white/40 backdrop-blur-3xl border-white/60'}`}>
+                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.insightTitle')}</h3>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className={`rounded-2xl p-5 border ${isDarkMode ? 'bg-[#0b132b]/60 border-white/10' : 'bg-white/90 border-slate-100 shadow-sm'}`}>
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                              <Info className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`text-base font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-slate-800'}`}>{t('results.trendsTitle')}</h4>
+                              <div className="flex flex-wrap items-center gap-2 mb-3">
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${levelBadgeClass(aiResult?.stress_level)}`}>
+                                  {insightMeta?.levelLabel || t('results.medium')}
+                                </span>
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${isDarkMode ? 'bg-white/5 text-slate-200 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
+                                  {t('results.gaugeConf')} {insightMeta?.confidencePct ?? 0}%
+                                </span>
+                              </div>
+                              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                                {insightCopy?.trends || t('results.trendsDesc')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`rounded-2xl p-5 border ${isDarkMode ? 'bg-[#0b132b]/60 border-white/10' : 'bg-white/90 border-slate-100 shadow-sm'}`}>
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+                              <Info className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`text-base font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-slate-800'}`}>{t('results.touchpointsTitle')}</h4>
+                              <div className="flex flex-wrap items-center gap-2 mb-3">
+                                {(insightMeta?.topFeatures || []).map((item, idx) => (
+                                  <span
+                                    key={`touch-${item.feature}-${idx}`}
+                                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${isDarkMode ? 'bg-white/5 text-slate-200 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-100'}`}
+                                  >
+                                    {item.feature} {Math.round(item.importance)}%
+                                  </span>
+                                ))}
+                              </div>
+                              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                                {insightCopy?.touchpoints || t('results.touchpointsDesc')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* 3. Biểu đồ Line/Bar (Lịch sử ẩn danh) */}
                     {sessionHistory.length > 0 && (
                       <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
                         <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.historyTitle')}</h3>
                         <div className="space-y-4">
                           {sessionHistory.map((session, idx) => (
-                            <div key={`history-${session.date}-${idx}`} className={`flex items-center gap-4 border p-4 rounded-2xl ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10' : 'bg-white/80 border-slate-100 shadow-sm'}`}>
+                            <div key={`history-${session.date}-${idx}`} className={`flex items-center gap-4 border p-4 rounded-xl ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10' : 'bg-white/80 border-slate-100 shadow-sm'}`}>
                               <div className={`px-4 py-2 rounded-xl text-sm font-extrabold whitespace-nowrap shadow-inner ${
                                 session.level === 'High' ? 'bg-red-50 text-red-600 border border-red-100' :
                                 session.level === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
@@ -1624,50 +1867,50 @@ export default function App() {
                     <div className="mb-12">
                       <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.recsTitle')}</h3>
                       <div className="grid md:grid-cols-2 gap-6">
-                        {(showAllRecs ? aiResult.recommendations : aiResult.recommendations.slice(0, 4)).map((rec, idx) => {
-                          const key = (rec as any).categoryKey || '';
-                          let Icon = Brain;
-                          let colorClass = isDarkMode ? 'text-blue-300' : 'text-blue-600';
-                          if (key === 'sleep')    { Icon = Moon;        colorClass = isDarkMode ? 'text-emerald-300' : 'text-emerald-600'; }
-                          else if (key === 'study')   { Icon = BookOpen;    colorClass = isDarkMode ? 'text-teal-300' : 'text-teal-600'; }
-                          else if (key === 'social')  { Icon = Users;       colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
-                          else if (key === 'exercise'){ Icon = Activity;    colorClass = isDarkMode ? 'text-slate-300' : 'text-slate-600'; }
-                          else if (key === 'finance') { Icon = DollarSign;  colorClass = isDarkMode ? 'text-rose-300' : 'text-rose-600'; }
-                          else if (key === 'mental')  { Icon = HeartHandshake; colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
+                        {(showAllRecs ? actionCards : actionCards.slice(0, 5)).map((rec, idx) => {
+                          const key = rec.categoryKey || '';
+                           let Icon = Brain;
+                           let colorClass = isDarkMode ? 'text-blue-300' : 'text-blue-600';
+                           if (key === 'sleep')    { Icon = Moon;        colorClass = isDarkMode ? 'text-emerald-300' : 'text-emerald-600'; }
+                           else if (key === 'study')   { Icon = BookOpen;    colorClass = isDarkMode ? 'text-teal-300' : 'text-teal-600'; }
+                           else if (key === 'social')  { Icon = Users;       colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
+                           else if (key === 'exercise'){ Icon = Activity;    colorClass = isDarkMode ? 'text-slate-300' : 'text-slate-600'; }
+                           else if (key === 'finance') { Icon = DollarSign;  colorClass = isDarkMode ? 'text-rose-300' : 'text-rose-600'; }
+                           else if (key === 'mental')  { Icon = HeartHandshake; colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
 
-                          return (
-                            <ActionCard 
+                           return (
+                             <ActionCard 
                               key={rec.id}
                               id={rec.id}
                               title={rec.title}
                               description={rec.description}
-                              icon={Icon}
-                              colorClass={colorClass}
-                              isBookmarked={bookmarkedRecs.includes(rec.id)}
-                              bookmarkAriaLabel={t('results.saveRec')}
-                              onBookmark={(e) => {
-                                e.stopPropagation();
-                                toggleBookmark(rec.id);
-                              }}
-                            />
-                          );
-                        })}
+                               icon={Icon}
+                               colorClass={colorClass}
+                               isBookmarked={bookmarkedRecs.includes(rec.id)}
+                               bookmarkAriaLabel={t('results.saveRec')}
+                               onBookmark={(e) => {
+                                 e.stopPropagation();
+                                 toggleBookmark(rec.id);
+                               }}
+                             />
+                           );
+                         })}
                       </div>
                       {/* Show more / show less toggle */}
-                      {aiResult.recommendations.length > 4 && (
-                        <div className="text-center mt-6">
-                          <button
-                            onClick={() => setShowAllRecs(prev => !prev)}
-                            className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} font-medium text-sm underline underline-offset-4`}
-                          >
-                            {showAllRecs
-                              ? (language === 'vi' ? 'Thu gọn' : language === 'de' ? 'Weniger anzeigen' : language === 'zh' ? '收起' : 'Show less')
-                              : (language === 'vi' ? `Xem thêm ${aiResult.recommendations.length - 4} gợi ý` : language === 'de' ? `${aiResult.recommendations.length - 4} weitere anzeigen` : language === 'zh' ? `查看更多 ${aiResult.recommendations.length - 4} 条建议` : `Show ${aiResult.recommendations.length - 4} more`)
-                            }
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                      {actionCards.length > 5 && (
+                         <div className="text-center mt-6">
+                           <button
+                             onClick={() => setShowAllRecs(prev => !prev)}
+                             className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} font-medium text-sm underline underline-offset-4`}
+                           >
+                             {showAllRecs
+                               ? (language === 'vi' ? 'Thu gọn' : language === 'de' ? 'Weniger anzeigen' : language === 'zh' ? '收起' : 'Show less')
+                               : (language === 'vi' ? `Xem thêm ${actionCards.length - 5} gợi ý` : language === 'de' ? `${actionCards.length - 5} weitere anzeigen` : language === 'zh' ? `查看更多 ${actionCards.length - 5} 条建议` : `Show ${actionCards.length - 5} more`)
+                             }
+                           </button>
+                         </div>
+                       )}
+                     </div>
 
                     {/* 5. Disclaimer & Quyền riêng tư */}
                     <div className="mt-12 pt-8 border-t border-gray-100/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
