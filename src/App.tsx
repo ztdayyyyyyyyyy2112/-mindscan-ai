@@ -111,7 +111,7 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
   const total = data.reduce((sum: number, item: any) => sum + item.importance, 0);
   if (!total) return <div className={`flex w-full ${height} rounded-2xl bg-gray-100`} />;
   return (
-    <div className={`flex w-full ${height} rounded-2xl overflow-hidden shadow-sm`}>
+    <div className={`flex w-full ${height} rounded-2xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] bg-gray-100/50 p-1 gap-1 backdrop-blur-sm`}>
       {data.map((item: any, idx: number) => {
         // Use saved color, but fall back to palette if missing or nearly-white
         const color = (!item.color || item.color === '#f3f4f6') ? BAR_FALLBACK_COLORS[idx % BAR_FALLBACK_COLORS.length] : item.color;
@@ -119,10 +119,11 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
           <div
             key={`${item.feature}-${idx}`}
             style={{ width: `${(item.importance / total) * 100}%`, backgroundColor: color }}
-            className="h-full flex items-center justify-center text-white font-bold text-sm transition-all hover:opacity-90"
+            className="h-full flex items-center justify-center text-white font-bold text-sm rounded-xl relative overflow-hidden group"
             title={`${item.feature}: ${item.importance}%`}
           >
-            {showLabels && item.importance > 8 ? item.importance : ''}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10 drop-shadow-md">{showLabels && item.importance > 8 ? item.importance : ''}</span>
           </div>
         );
       })}
@@ -135,10 +136,10 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
 
   return (
     <div 
-      className="relative group bg-white/80 dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/50 shadow-md hover:shadow-xl dark:shadow-slate-900/40 rounded-[1.75rem] overflow-hidden p-6 flex items-start gap-4 cursor-pointer hover:bg-white/95 dark:hover:bg-slate-800/80 hover:scale-[1.01] transition-all duration-300"
+      className="relative group bg-white/20 dark:bg-slate-800/60 backdrop-blur-3xl border border-white/40 dark:border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-slate-900/40 rounded-[2rem] overflow-hidden p-6 flex items-start gap-4 cursor-pointer hover:bg-white/30 dark:hover:bg-slate-800/80 hover:scale-[1.01] transition-all duration-300"
       onClick={() => setIsExpanded(!isExpanded)}
     >
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)] bg-white/40 dark:bg-white/10 ${colorClass}`}>
         <Icon className="w-6 h-6" />
       </div>
       <div className="flex-1">
@@ -155,7 +156,7 @@ const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmark
         >
           {isBookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
         </button>
-        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/20 flex items-center justify-center shrink-0 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/20 transition-all">
+        <div className="w-8 h-8 rounded-full bg-white/30 dark:bg-white/10 border border-white/40 dark:border-white/20 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/20 transition-all shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)]">
           <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
@@ -621,79 +622,96 @@ export default function App() {
   );
 
   const renderStepContent = () => {
+    const questionCardClass = `space-y-4 rounded-[2rem] p-6 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`;
+    const questionLabelClass = `block text-base font-bold ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`;
+    const textHintClass = `text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`;
+    const inputClass = `w-full p-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all font-medium ${isDarkMode ? 'bg-[#0b132b]/60 border-white/15 text-white focus:border-blue-500 focus:ring-blue-500/20' : 'bg-white/90 border-slate-100 text-slate-700 focus:border-blue-500 focus:ring-blue-500/10'}`;
+    const selectClass = `w-full p-4 rounded-2xl border-2 appearance-none focus:outline-none focus:ring-4 transition-all font-medium ${isDarkMode ? 'bg-[#0b132b]/60 border-white/15 text-white focus:border-blue-500 focus:ring-blue-500/20' : 'bg-white/90 border-slate-100 text-slate-700 focus:border-blue-500 focus:ring-blue-500/10'}`;
+    const choiceButtonClass = (selected: boolean) => (
+      `px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 border focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+        selected
+          ? (isDarkMode
+            ? 'bg-blue-600 text-white border-blue-600'
+            : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_4px_15px_rgba(37,99,235,0.3)] border-transparent')
+          : (isDarkMode
+            ? 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50')
+      }`
+    );
+
     switch (currentStep) {
       case 1:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('questions.s1Title')}</h2>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+            <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('questions.s1Title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q1')}</label>
-                <input type="number" min="10" max="100" value={formData.age} onChange={(e) => handleInputChange('age', e.target.value)} placeholder="20" className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-600 outline-none ${isDarkMode ? 'bg-[#0b132b]/50 border-white/20 text-white' : 'bg-white border-gray-300'}`} />
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q1')}</label>
+                <input type="number" min="10" max="100" value={formData.age} onChange={(e) => handleInputChange('age', e.target.value)} placeholder="20" className={inputClass} />
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q2')}</label>
-                <div className="flex flex-wrap gap-2">
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q2')}</label>
+                <div className="flex flex-wrap gap-3">
                   {[
-                    { val: 'Nam', label: t('questions.genderMale') }, 
-                    { val: 'Nữ', label: t('questions.genderFemale') }, 
+                    { val: 'Nam', label: t('questions.genderMale') },
+                    { val: 'Nữ', label: t('questions.genderFemale') },
                     { val: 'Khác', label: t('questions.genderOther') }
                   ].map(gender => (
-                    <button key={gender.val} onClick={() => handleInputChange('gender', gender.val)} className={`px-4 py-2 rounded-full text-sm font-medium border ${formData.gender === gender.val ? 'bg-blue-600 text-white border-blue-600' : isDarkMode ? 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{gender.label}</button>
+                    <button key={gender.val} onClick={() => handleInputChange('gender', gender.val)} className={choiceButtonClass(formData.gender === gender.val)}>{gender.label}</button>
                   ))}
                 </div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q3')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q3')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.academic_performance} onChange={(v) => handleInputChange('academic_performance', v)} ariaLabel="Academic performance" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q4')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q4')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.study_load} onChange={(v) => handleInputChange('study_load', v)} ariaLabel="Study load" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q5')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q5')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.teacher_student_relationship} onChange={(v) => handleInputChange('teacher_student_relationship', v)} ariaLabel="Teacher relationship" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q6')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q6')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.future_career_concerns} onChange={(v) => handleInputChange('future_career_concerns', v)} ariaLabel="Career concern" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
             </div>
           </motion.div>
         );
       case 2:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('questions.s2Title')}</h2>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+            <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('questions.s2Title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q7')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q7')}</label>
                 <CustomSlider min={0} max={21} step={1} value={formData.anxiety_level} onChange={(v) => handleInputChange('anxiety_level', v)} ariaLabel="Anxiety" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>21</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>21</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q8')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q8')}</label>
                 <CustomSlider min={0} max={27} step={1} value={formData.depression} onChange={(v) => handleInputChange('depression', v)} ariaLabel="Depression" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>27</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>27</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q9')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q9')}</label>
                 <CustomSlider min={0} max={30} step={1} value={formData.self_esteem} onChange={(v) => handleInputChange('self_esteem', v)} ariaLabel="Self Esteem" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>30</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>30</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q10')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q10')}</label>
                 <div className="flex gap-4">
                   {[
                     { val: 'Có', label: t('questions.yes') },
                     { val: 'Không', label: t('questions.no') }
                   ].map(opt => (
-                    <button key={opt.val} onClick={() => handleInputChange('mental_health_history', opt.val)} className={`px-6 py-2 rounded-xl text-sm font-medium border ${formData.mental_health_history === opt.val ? 'bg-blue-600 text-white border-blue-600' : isDarkMode ? 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}>{opt.label}</button>
+                    <button key={opt.val} onClick={() => handleInputChange('mental_health_history', opt.val)} className={choiceButtonClass(formData.mental_health_history === opt.val)}>{opt.label}</button>
                   ))}
                 </div>
               </div>
@@ -702,87 +720,87 @@ export default function App() {
         );
       case 3:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('questions.s3Title')}</h2>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+            <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('questions.s3Title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q11')}</label>
-                <select value={formData.blood_pressure} onChange={(e) => handleInputChange('blood_pressure', parseInt(e.target.value))} className={`w-full p-3 border rounded-xl outline-none ${isDarkMode ? 'bg-[#0b132b] text-white border-white/20' : 'bg-white border-gray-300'}`}>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q11')}</label>
+                <select value={formData.blood_pressure} onChange={(e) => handleInputChange('blood_pressure', parseInt(e.target.value))} className={selectClass}>
                   <option value={1}>{t('questions.bpLow')}</option>
                   <option value={2}>{t('questions.bpNormal')}</option>
                   <option value={3}>{t('questions.bpHigh')}</option>
                 </select>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q12')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q12')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.sleep_quality} onChange={(v) => handleInputChange('sleep_quality', v)} ariaLabel="Sleep" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q13')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q13')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.headache} onChange={(v) => handleInputChange('headache', v)} ariaLabel="Headache" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q14')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q14')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.breathing_problem} onChange={(v) => handleInputChange('breathing_problem', v)} ariaLabel="Breathing" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
             </div>
           </motion.div>
         );
       case 4:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('questions.s4Title')}</h2>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+            <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('questions.s4Title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q15')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q15')}</label>
                 <CustomSlider min={0} max={3} step={1} value={formData.social_support} onChange={(v) => handleInputChange('social_support', v)} ariaLabel="Social support" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>3</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>3</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q16')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q16')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.peer_pressure} onChange={(v) => handleInputChange('peer_pressure', v)} ariaLabel="Peer pressure" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q17')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q17')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.extracurricular_activities} onChange={(v) => handleInputChange('extracurricular_activities', v)} ariaLabel="Extracurricular" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q18')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q18')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.bullying} onChange={(v) => handleInputChange('bullying', v)} ariaLabel="Bullying" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
             </div>
           </motion.div>
         );
       case 5:
         return (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('questions.s5Title')}</h2>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+            <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('questions.s5Title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q19')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q19')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.noise_level} onChange={(v) => handleInputChange('noise_level', v)} ariaLabel="Noise" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q20')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q20')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.living_conditions} onChange={(v) => handleInputChange('living_conditions', v)} ariaLabel="Living conditions" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q21')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q21')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.safety} onChange={(v) => handleInputChange('safety', v)} ariaLabel="Safety" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>{t('questions.q22')}</label>
+              <div className={questionCardClass}>
+                <label className={questionLabelClass}>{t('questions.q22')}</label>
                 <CustomSlider min={0} max={5} step={1} value={formData.basic_needs} onChange={(v) => handleInputChange('basic_needs', v)} ariaLabel="Basic needs" />
-                <div className={`flex justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}><span>0</span><span>5</span></div>
+                <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>5</span></div>
               </div>
             </div>
           </motion.div>
@@ -933,7 +951,7 @@ export default function App() {
                   onClick={() => setIsSurveyOpen(true)}
                   className={`relative overflow-hidden rounded-full font-semibold px-5 py-2 text-sm transition-all duration-300 flex items-center gap-2 group ${
                     isDarkMode 
-                      ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500 shadow-[0_4px_20px_rgba(59,130,246,0.3)] hover:-translate-y-0.5' 
+                      ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500' 
                       : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5'
                   }`}
                 >
@@ -996,7 +1014,7 @@ export default function App() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowPrivacyModal(false)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-              className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border border-white/10' : 'bg-white/95 border border-gray-200'}`}
+              className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border-white/10' : 'bg-white/95 border border-gray-200'}`}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-6">
@@ -1043,7 +1061,7 @@ export default function App() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowEthicsModal(false)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-              className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border border-white/10' : 'bg-white/95 border border-gray-200'}`}
+              className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border-white/10' : 'bg-white/95 border border-gray-200'}`}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-6">
@@ -1084,7 +1102,6 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
-
       {renderHowItWorksModal()}
       {renderEmergencyModal()}
 
@@ -1388,7 +1405,7 @@ export default function App() {
                           <Activity className="w-7 h-7" />
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-white mb-2">{t('tech.point1Title')}</h4>
+                          <h4 className="text-xl font-bold mb-2">{t('tech.point1Title')}</h4>
                           <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point1Text')}</p>
                         </div>
                       </div>
@@ -1398,7 +1415,7 @@ export default function App() {
                           <CheckCircle2 className="w-7 h-7" />
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-white mb-2">{t('tech.point2Title')}</h4>
+                          <h4 className="text-xl font-bold mb-2">{t('tech.point2Title')}</h4>
                           <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point2Text')}</p>
                         </div>
                       </div>
@@ -1408,7 +1425,7 @@ export default function App() {
                           <Brain className="w-7 h-7" />
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-white mb-2">{t('tech.point3Title')}</h4>
+                          <h4 className="text-xl font-bold mb-2">{t('tech.point3Title')}</h4>
                           <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point3Text')}</p>
                         </div>
                       </div>
@@ -1428,7 +1445,7 @@ export default function App() {
                            &nbsp;&nbsp;max_depth=<span className="text-orange-400">6</span>,<br/>
                            &nbsp;&nbsp;objective=<span className="text-green-400">'multi:softprob'</span><br/>
                            )<br/>
-                           <span className="block mt-4 text-gray-500">/* {language === 'vi' ? 'Đầu ra dự báo' : language === 'zh' ? '预测输出' : language === 'de' ? 'Vorhersageausgabe' : 'Prediction output'}: LOW, MEDIUM, HIGH */</span>
+                           <span className="block mt-4 text-gray-500 italic">/* {language === 'vi' ? 'Đầu ra dự báo' : language === 'zh' ? '预测输出' : language === 'de' ? 'Vorhersageausgabe' : 'Prediction output'}: LOW, MEDIUM, HIGH */</span>
                          </div>
                          <div className="bg-gray-900 p-4 rounded-xl text-sm font-mono text-gray-300 border border-gray-800 flex items-center justify-between">
                             <span>{t('tech.modelAcc')}</span>
@@ -1489,20 +1506,22 @@ export default function App() {
             className="container mx-auto px-6 py-12 max-w-3xl"
           >
             {!isCompleted ? (
-              <div className={`relative backdrop-blur-3xl border shadow-[0_16px_48px_rgba(0,0,0,0.12),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-[2rem] overflow-hidden p-8 md:p-12 ${isDarkMode ? 'bg-slate-900/85 border-white/10' : 'bg-white/85 border-sky-100/80 shadow-xl'}`}>
+              <div className={`relative rounded-[2rem] overflow-hidden p-8 md:p-12 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/80 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
                 {/* Progress Bar */}
                 <div className="mb-12">
-                  <div className={`flex justify-between text-sm font-medium mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <div className={`flex justify-between text-sm font-bold mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                     <span>{t('survey.step')} {currentStep} / 5</span>
-                    <span>{Math.round((currentStep / 5) * 100)}% {t('survey.completed')}</span>
+                    <span className={isDarkMode ? 'text-blue-400' : 'text-blue-600'}>{Math.round((currentStep / 5) * 100)}% {t('survey.completed')}</span>
                   </div>
-                  <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <div className={`w-full h-3 rounded-full overflow-hidden shadow-inner ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
                     <motion.div 
-                      className="h-full bg-blue-600 rounded-full"
+                      className="h-full bg-gradient-to-r from-blue-500 to-teal-400 rounded-full relative"
                       initial={{ width: `${((currentStep - 1) / 5) * 100}%` }}
                       animate={{ width: `${(currentStep / 5) * 100}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]" />
+                    </motion.div>
                   </div>
                 </div>
 
@@ -1520,18 +1539,18 @@ export default function App() {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className={`mt-8 pt-8 border-t flex items-center justify-between ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                <div className={`mt-10 pt-8 border-t flex items-center justify-between ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
                   <button 
                     onClick={prevStep}
                     aria-label={t('survey.btnPrev')}
-                    className={`flex items-center gap-2 font-medium px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/10 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:ring-blue-600 focus:ring-offset-white'}`}
+                    className={`flex items-center gap-2 font-bold px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'text-slate-300 hover:text-white hover:bg-white/10 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'text-slate-600 hover:text-slate-900 hover:bg-white/70 focus:ring-slate-400 focus:ring-offset-white'}`}
                   >
                     <ArrowLeft className="w-5 h-5" aria-hidden="true" /> {t('survey.btnPrev')}
                   </button>
                   <button 
                     onClick={nextStep}
                     aria-label={currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')}
-                    className={`relative overflow-hidden group px-8 py-3 rounded-full font-semibold backdrop-blur-2xl transition-all duration-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'bg-white/30 text-blue-700 border border-white/50 shadow-[0_8px_32px_rgba(59,130,246,0.15)] hover:bg-white/50 focus:ring-blue-600 focus:ring-offset-white'}`}
+                    className={`relative overflow-hidden group rounded-full font-semibold px-8 py-3 transition-all duration-300 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:-translate-y-0.5 ${isDarkMode ? 'bg-blue-600/30 text-blue-100 border border-blue-500/40 hover:bg-blue-600/40 focus:ring-blue-400 focus:ring-offset-[#0b132b]' : 'bg-white/30 backdrop-blur-2xl text-blue-700 border border-white/50 hover:bg-white/40 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,1)] focus:ring-blue-600 focus:ring-offset-white'}`}
                   >
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     {currentStep === 5 ? t('survey.btnSubmit') : t('survey.btnNext')} <ArrowRight className="w-5 h-5" aria-hidden="true" />
@@ -1541,16 +1560,16 @@ export default function App() {
             ) : (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                className={`relative backdrop-blur-3xl border shadow-[0_16px_48px_rgba(0,0,0,0.12)] rounded-[2rem] overflow-hidden p-8 md:p-12 ${
-                  isDarkMode 
-                    ? 'bg-slate-900/85 border-white/10' 
-                    : 'bg-white/85 border-sky-100/80 shadow-xl'
-                }`}
+                className={`relative rounded-[2rem] overflow-hidden p-8 md:p-12 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] ${isDarkMode ? 'bg-slate-900/80 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}
               >
                 {isAnalyzing ? (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6"></div>
-                    <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('survey.analyzingTitle')}</h2>
+                    <div className="relative w-24 h-24 mx-auto mb-8">
+                      <div className={`absolute inset-0 border-4 rounded-full ${isDarkMode ? 'border-slate-700' : 'border-blue-100'}`}></div>
+                      <div className={`absolute inset-0 border-4 rounded-full border-t-transparent animate-spin ${isDarkMode ? 'border-blue-400' : 'border-blue-500'}`}></div>
+                      <div className={`absolute inset-0 m-auto w-8 h-8 rounded-full ${isDarkMode ? 'bg-blue-500/30' : 'bg-blue-500/20'}`}></div>
+                    </div>
+                    <h2 className={`text-2xl font-extrabold mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('survey.analyzingTitle')}</h2>
                     <p className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>{t('survey.analyzingDesc')}</p>
                   </div>
                 ) : aiResult ? (
@@ -1562,14 +1581,14 @@ export default function App() {
                     </div>
 
                     {/* 2. Biểu đồ Stacked Bar - Yếu tố tác động */}
-                    <div className="mb-12">
-                      <h3 className={`text-xl font-bold mb-6 text-center ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{t('results.featureTitle')}</h3>
+                    <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
+                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.featureTitle')}</h3>
                       
                       {/* Legend */}
                       <div className="flex flex-wrap justify-center gap-4 mb-4">
                         {aiResult.feature_importance.map((item: any, idx: number) => (
-                          <div key={`legend-${item.feature}-${idx}`} className={`flex items-center gap-2 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
+                          <div key={`legend-${item.feature}-${idx}`} className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${isDarkMode ? 'text-gray-300 bg-white/10 border-white/20' : 'text-slate-600 bg-white/80 border-slate-100 shadow-sm'}`}>
+                            <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: item.color }}></span>
                             {item.feature}
                           </div>
                         ))}
@@ -1580,20 +1599,20 @@ export default function App() {
 
                     {/* 3. Biểu đồ Line/Bar (Lịch sử ẩn danh) */}
                     {sessionHistory.length > 0 && (
-                      <div className="mb-12">
-                        <h3 className={`text-xl font-bold mb-6 text-center ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{t('results.historyTitle')}</h3>
+                      <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
+                        <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.historyTitle')}</h3>
                         <div className="space-y-4">
                           {sessionHistory.map((session, idx) => (
-                            <div key={`history-${session.date}-${idx}`} className={`flex items-center gap-4 backdrop-blur-sm border p-4 rounded-2xl ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10' : 'bg-white/20 border-white/30'}`}>
-                              <div className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap ${
-                                session.level === 'High' ? 'bg-red-100 text-red-700' :
-                                session.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-green-100 text-green-700'
+                            <div key={`history-${session.date}-${idx}`} className={`flex items-center gap-4 border p-4 rounded-2xl ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10' : 'bg-white/80 border-slate-100 shadow-sm'}`}>
+                              <div className={`px-4 py-2 rounded-xl text-sm font-extrabold whitespace-nowrap shadow-inner ${
+                                session.level === 'High' ? 'bg-red-50 text-red-600 border border-red-100' :
+                                session.level === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                                'bg-emerald-50 text-emerald-600 border border-emerald-100'
                               }`}>
                                 {session.date}
                               </div>
                               <div className="flex-1">
-                                {session.features && <CustomStackedBar data={session.features} height="h-8" showLabels={false} />}
+                                {session.features && <CustomStackedBar data={session.features} height="h-10" showLabels={false} />}
                               </div>
                             </div>
                           ))}
@@ -1603,18 +1622,18 @@ export default function App() {
 
                     {/* 4. Action Cards — icon mapped by language-agnostic categoryKey */}
                     <div className="mb-12">
-                      <h3 className={`text-xl font-bold mb-6 text-center ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{t('results.recsTitle')}</h3>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.recsTitle')}</h3>
+                      <div className="grid md:grid-cols-2 gap-6">
                         {(showAllRecs ? aiResult.recommendations : aiResult.recommendations.slice(0, 4)).map((rec, idx) => {
                           const key = (rec as any).categoryKey || '';
                           let Icon = Brain;
-                          let colorClass = isDarkMode ? 'bg-blue-900/50 text-blue-400 border border-blue-800' : 'bg-blue-100 text-blue-600';
-                          if (key === 'sleep')    { Icon = Moon;        colorClass = isDarkMode ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-800' : 'bg-[#a7f3d0] text-[#047857]'; }
-                          else if (key === 'study')   { Icon = BookOpen;    colorClass = isDarkMode ? 'bg-teal-900/50 text-teal-400 border border-teal-800' : 'bg-[#99f6e4] text-[#0f766e]'; }
-                          else if (key === 'social')  { Icon = Users;       colorClass = isDarkMode ? 'bg-purple-900/50 text-purple-400 border border-purple-800' : 'bg-[#e9d5ff] text-[#7e22ce]'; }
-                          else if (key === 'exercise'){ Icon = Activity;    colorClass = isDarkMode ? 'bg-slate-800 border border-slate-700 text-slate-300' : 'bg-[#e2e8f0] text-[#334155]'; }
-                          else if (key === 'finance') { Icon = DollarSign;  colorClass = isDarkMode ? 'bg-rose-900/50 text-rose-400 border border-rose-800' : 'bg-[#fecdd3] text-[#be123c]'; }
-                          else if (key === 'mental')  { Icon = HeartHandshake; colorClass = isDarkMode ? 'bg-purple-900/50 text-purple-400 border border-purple-800' : 'bg-purple-100 text-purple-600'; }
+                          let colorClass = isDarkMode ? 'text-blue-300' : 'text-blue-600';
+                          if (key === 'sleep')    { Icon = Moon;        colorClass = isDarkMode ? 'text-emerald-300' : 'text-emerald-600'; }
+                          else if (key === 'study')   { Icon = BookOpen;    colorClass = isDarkMode ? 'text-teal-300' : 'text-teal-600'; }
+                          else if (key === 'social')  { Icon = Users;       colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
+                          else if (key === 'exercise'){ Icon = Activity;    colorClass = isDarkMode ? 'text-slate-300' : 'text-slate-600'; }
+                          else if (key === 'finance') { Icon = DollarSign;  colorClass = isDarkMode ? 'text-rose-300' : 'text-rose-600'; }
+                          else if (key === 'mental')  { Icon = HeartHandshake; colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
 
                           return (
                             <ActionCard 
