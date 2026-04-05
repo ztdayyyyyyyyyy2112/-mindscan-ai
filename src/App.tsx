@@ -2433,127 +2433,28 @@ export default function App() {
                                   {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
                                 </p>
                               </div>
-                                  <Activity className="w-4 h-4" /> Last 30 Days
-                                </div>
+                            </div>
+
+                            <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                                <CheckCircle2 className="w-6 h-6" />
                               </div>
-
-                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 flex-1">
-                                {/* Stress Load Card */}
-                                <div className={`lg:col-span-5 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
-                                  <div className="flex items-start justify-between gap-3 mb-4">
-                                    <div>
-                                      <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Load</h3>
-                                      <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Real-time physiological proxy</p>
-                                    </div>
-                                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}
-                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
-                                  </div>
-                                  <div className="flex flex-col items-center justify-center py-2">
-                                    <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
-                                  </div>
-                                  <div className="mt-4 pt-4 grid grid-cols-3 gap-2" style={{ borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
-                                    <div className="text-center">
-                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Status</div>
-                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{insightMeta?.levelLabel || 'Medium'}</div>
-                                    </div>
-                                    <div className="text-center">
-                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Trend</div>
-                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stable</div>
-                                    </div>
-                                    <div className="text-center">
-                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Baseline</div>
-                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.max(0, Math.round((insightMeta?.confidencePct ?? 0) * 0.8))}%</div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Impact Factors Card */}
-                                <div className={`lg:col-span-7 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
-                                  <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Impact Factors</h3>
-                                  <p className={`text-sm mb-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Primary drivers of current stress state</p>
-                                  <div className="w-full h-12 rounded-full overflow-hidden flex" style={{ background: isDarkMode ? '#1e293b' : '#eaeef1' }}>
-                                    {aiResult.feature_importance.map((item: any, idx: number) => {
-                                      const total = aiResult.feature_importance.reduce((s: number, f: any) => s + f.importance, 0);
-                                      const pct = total > 0 ? (item.importance / total) * 100 : 0;
-                                      const color = (!item.color || item.color === '#f3f4f6') ? ['#006b60','#6e3bd8','#a53173','#48e5d0'][idx % 4] : item.color;
-                                      return (
-                                        <div key={`bar-${idx}`} style={{ width: `${pct}%`, backgroundColor: color }}
-                                          className="h-full flex items-center justify-center text-[10px] text-white font-bold"
-                                          title={`${item.feature}: ${Math.round(item.importance)}%`}>
-                                          {pct > 8 ? Math.round(item.importance) : ''}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-                                    {aiResult.feature_importance.slice(0, 4).map((item: any, idx: number) => {
-                                      const dotColors = ['#006b60','#6e3bd8','#a53173','#48e5d0'];
-                                      const dotColor = (!item.color || item.color === '#f3f4f6') ? dotColors[idx % 4] : item.color;
-                                      return (
-                                        <div key={`fi-${idx}`} className={`flex items-start gap-3 p-3 rounded-2xl ${isDarkMode ? 'bg-white/5' : 'bg-white/40'}`}>
-                                          <span className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: dotColor }} />
-                                          <div>
-                                            <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.feature}</div>
-                                            <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% Impact</div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Prominent Trends + Critical Touchpoints */}
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
-                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}>
-                                    <Activity className="w-6 h-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                      <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Prominent Trends</h4>
-                                      <Info className={`w-4 h-4 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-300'}`} />
-                                    </div>
-                                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {(insightMeta?.topFeatures || []).map((item, idx) => (
+                                    <span key={`touch-${idx}`}
+                                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
                                       style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                      {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
-                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                                    <CheckCircle2 className="w-6 h-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                      style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                      {(insightMeta?.topFeatures || []).map((item, idx) => (
-                                        <span key={`touch-${idx}`}
-                                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
-                                          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                          {item.feature} ({Math.round(item.importance)}%)
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
+                                      {item.feature} ({Math.round(item.importance)}%)
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
-                            </>
+                            </div>
+                          </div>
+                          </>
                           )}
                         </div>
                       </div>
