@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wellness Analysis | Mindful Scholar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#2d3337",
+                        "primary-fixed": "#5bf4de",
+                        "surface-dim": "#d3dbdf",
+                        "on-error": "#fff7f6",
+                        "surface-tint": "#006b60",
+                        "secondary-fixed": "#e9ddff",
+                        "primary": "#006b60",
+                        "error-container": "#f56965",
+                        "on-primary": "#e2fff8",
+                        "on-surface": "#2d3337",
+                        "inverse-on-surface": "#9a9d9f",
+                        "on-tertiary-fixed": "#46002c",
+                        "on-secondary-fixed-variant": "#6a37d4",
+                        "secondary-fixed-dim": "#ddcdff",
+                        "on-primary-container": "#00594f",
+                        "on-tertiary": "#fff7f8",
+                        "surface-container-high": "#e3e9ec",
+                        "primary-container": "#5bf4de",
+                        "secondary-container": "#e9ddff",
+                        "on-secondary": "#fdf7ff",
+                        "inverse-primary": "#65fde6",
+                        "primary-dim": "#005e54",
+                        "secondary-dim": "#622bcb",
+                        "tertiary": "#a53173",
+                        "secondary": "#6e3bd8",
+                        "on-primary-fixed": "#00443c",
+                        "tertiary-dim": "#952467",
+                        "surface-container": "#eaeef1",
+                        "surface-variant": "#dde3e7",
+                        "tertiary-fixed-dim": "#ff81c1",
+                        "surface-bright": "#f7f9fb",
+                        "inverse-surface": "#0b0f10",
+                        "outline": "#757c7f",
+                        "error": "#ac3434",
+                        "surface-container-low": "#f1f4f6",
+                        "on-error-container": "#65000b",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#48e5d0",
+                        "on-surface-variant": "#596063",
+                        "surface-container-highest": "#dde3e7",
+                        "on-secondary-fixed": "#4d00b7",
+                        "error-dim": "#70030f",
+                        "on-primary-fixed-variant": "#006358",
+                        "tertiary-fixed": "#ff99ca",
+                        "tertiary-container": "#ff99ca",
+                        "on-secondary-container": "#6029c9",
+                        "background": "#f7f9fb",
+                        "on-tertiary-container": "#6e0048",
+                        "on-tertiary-fixed-variant": "#7b0852",
+                        "surface": "#f7f9fb",
+                        "outline-variant": "#acb3b7"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .liquid-bg {
+            background: radial-gradient(at 0% 0%, #e2fff8 0px, transparent 50%),
+                        radial-gradient(at 100% 0%, #e9ddff 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, #ff99ca 0px, transparent 50%),
+                        radial-gradient(at 0% 100%, #5bf4de 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface liquid-bg min-h-screen">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-200/20 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-2xl flex flex-col p-6 space-y-8 z-50">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<h2 class="text-xl font-black text-teal-700 dark:text-teal-300 font-headline leading-none">The Sanctuary</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">Academic Wellness</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-teal-600 transition-all duration-300 ease-in-out font-semibold text-sm" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center px-4 py-3 bg-teal-600/10 text-teal-700 dark:text-teal-300 rounded-xl transition-all duration-300 ease-in-out font-semibold text-sm" href="#">
+<span class="material-symbols-outlined mr-3">insights</span> Analytics
+            </a>
+<a class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-teal-600 transition-all duration-300 ease-in-out font-semibold text-sm" href="#">
+<span class="material-symbols-outlined mr-3">mood</span> Mood Log
+            </a>
+<a class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-teal-600 transition-all duration-300 ease-in-out font-semibold text-sm" href="#">
+<span class="material-symbols-outlined mr-3">group</span> Peer Insights
+            </a>
+<a class="flex items-center px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-teal-600 transition-all duration-300 ease-in-out font-semibold text-sm" href="#">
+<span class="material-symbols-outlined mr-3">library_books</span> Resources
+            </a>
+</nav>
+<div class="pt-6">
+<button class="w-full py-4 rounded-full bg-gradient-to-r from-primary to-primary-dim text-white font-bold shadow-lg shadow-primary/20 flex items-center justify-center space-x-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">add</span>
+<span>New Entry</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="pl-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-40 bg-white/60 backdrop-blur-xl shadow-sm shadow-teal-900/5 flex justify-between items-center px-8 py-4">
+<h1 class="text-2xl font-extrabold tracking-tight text-teal-600 font-headline">Mindful Scholar</h1>
+<div class="flex items-center space-y-0 space-x-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search insights..." type="text"/>
+</div>
+<div class="flex items-center space-x-2">
+<button class="p-2 text-slate-500 hover:bg-teal-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-teal-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm ml-2">
+<img alt="Student profile avatar" data-alt="Close-up portrait of a young male student with a thoughtful expression, warm studio lighting, professional aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOkV-GxsfUNCpj6j7iQqh_0p7x1VAJ-_AH_30Ln28RzYcb5Rg287X9nEkpmiB4naiKNvdgQmiQGEfq25oc7SR_F4fotyGgOEZWVKZRcQhoJnB1k5myQQOPx9uG3HucAQH5x5Xjp9ezDrthRtSqY4iHqvqIaNLZkbWA-TwzmxwEEtIWli9NEVdF3aUdoPm-ObAY5mzcRPu13ZmsIlDCX46GGM9YY-uvbtpWK67jGelkLgjf_fwUX8o1WE5nXhTrzMt_PG2xDJVuYCMm"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-12 max-w-7xl mx-auto space-y-12">
+<!-- Header Section -->
+<section class="space-y-2">
+<h2 class="text-4xl font-extrabold text-on-surface font-headline tracking-tight">Student Wellness Analysis and Action Plan</h2>
+<p class="text-on-surface-variant text-lg font-medium">An editorial view of your cognitive load and recovery vectors.</p>
+</section>
+<!-- Top Grid: Stress Meter & Impact Factors -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Stress Meter Card -->
+<div class="lg:col-span-5 glass-card rounded-[2rem] p-8 shadow-sm">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="text-xl font-bold font-headline text-on-surface">Stress Load</h3>
+<p class="text-sm text-on-surface-variant font-medium">Real-time physiological proxy</p>
+</div>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">LIVE</span>
+</div>
+<div class="relative flex flex-col items-center justify-center pt-4">
+<!-- Semi-circle Gauge SVG -->
+<svg class="w-64 h-32" viewbox="0 0 100 50">
+<path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#dde3e7" stroke-linecap="round" stroke-width="8"></path>
+<path d="M 10 50 A 40 40 0 0 1 65 14" fill="none" stroke="url(#stressGradient)" stroke-linecap="round" stroke-width="10"></path>
+<defs>
+<lineargradient id="stressGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:var(--tw-gradient-from, #5bf4de);stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:var(--tw-gradient-to, #6e3bd8);stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="mt-4 text-center">
+<div class="text-5xl font-black font-headline text-primary leading-tight">Medium</div>
+<div class="text-sm font-bold text-on-surface-variant mt-1">68% Confidence Interval</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-200/30 flex justify-between">
+<div class="text-center">
+<div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</div>
+<div class="text-sm font-bold text-on-surface">Elevated</div>
+</div>
+<div class="text-center">
+<div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Trend</div>
+<div class="text-sm font-bold text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span> +12%
+                            </div>
+</div>
+<div class="text-center">
+<div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Baseline</div>
+<div class="text-sm font-bold text-on-surface">Stable</div>
+</div>
+</div>
+</div>
+<!-- Feature Importance Chart Card -->
+<div class="lg:col-span-7 glass-card rounded-[2rem] p-8 shadow-sm">
+<div class="mb-8">
+<h3 class="text-xl font-bold font-headline text-on-surface">Impact Factors</h3>
+<p class="text-sm text-on-surface-variant font-medium">Primary drivers of current stress state</p>
+</div>
+<div class="space-y-8">
+<!-- Horizontal Stacked Bar -->
+<div class="w-full h-12 bg-surface-container rounded-full flex overflow-hidden">
+<div class="h-full bg-primary flex items-center justify-center text-[10px] text-white font-bold" style="width: 35%">BP</div>
+<div class="h-full bg-secondary flex items-center justify-center text-[10px] text-white font-bold" style="width: 25%">SOC</div>
+<div class="h-full bg-tertiary flex items-center justify-center text-[10px] text-white font-bold" style="width: 20%">ANX</div>
+<div class="h-full bg-primary-fixed-dim flex items-center justify-center text-[10px] text-on-primary-fixed font-bold" style="width: 20%">SLP</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex items-start space-x-3 p-4 rounded-2xl bg-white/30">
+<div class="w-3 h-3 rounded-full bg-primary mt-1.5"></div>
+<div>
+<div class="text-sm font-bold">Blood Pressure</div>
+<div class="text-xs text-on-surface-variant">35% Impact • Sustained elevation</div>
+</div>
+</div>
+<div class="flex items-start space-x-3 p-4 rounded-2xl bg-white/30">
+<div class="w-3 h-3 rounded-full bg-secondary mt-1.5"></div>
+<div>
+<div class="text-sm font-bold">Social Support</div>
+<div class="text-xs text-on-surface-variant">25% Impact • Low engagement</div>
+</div>
+</div>
+<div class="flex items-start space-x-3 p-4 rounded-2xl bg-white/30">
+<div class="w-3 h-3 rounded-full bg-tertiary mt-1.5"></div>
+<div>
+<div class="text-sm font-bold">Future Anxiety</div>
+<div class="text-xs text-on-surface-variant">20% Impact • Career planning</div>
+</div>
+</div>
+<div class="flex items-start space-x-3 p-4 rounded-2xl bg-white/30">
+<div class="w-3 h-3 rounded-full bg-primary-fixed-dim mt-1.5"></div>
+<div>
+<div class="text-sm font-bold">Sleep Quality</div>
+<div class="text-xs text-on-surface-variant">20% Impact • REM deficiency</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Survey Summary Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="glass-card rounded-3xl p-8 flex items-center space-x-6 border border-white/40">
+<div class="w-16 h-16 rounded-2xl bg-primary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">trending_up</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h4 class="text-lg font-bold font-headline">Prominent Trends</h4>
+<span class="material-symbols-outlined text-slate-400 text-sm cursor-help">info</span>
+</div>
+<p class="text-sm text-on-surface-variant mt-1">Evening cortisol spikes detected in 4 of last 7 days.</p>
+</div>
+</div>
+<div class="glass-card rounded-3xl p-8 flex items-center space-x-6 border border-white/40">
+<div class="w-16 h-16 rounded-2xl bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl">touch_app</span>
+</div>
+<div class="flex-1">
+<h4 class="text-lg font-bold font-headline">Critical Touchpoints</h4>
+<div class="flex space-x-4 mt-2">
+<div class="bg-white/40 px-3 py-1 rounded-full text-xs font-bold text-on-surface">Study Blocks (42%)</div>
+<div class="bg-white/40 px-3 py-1 rounded-full text-xs font-bold text-on-surface">Peer Interaction (28%)</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Stress History Section -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-2xl font-extrabold font-headline">Anonymous History</h3>
+<p class="text-on-surface-variant font-medium">Aggregated stress distribution over time</p>
+</div>
+<button class="text-primary font-bold text-sm flex items-center hover:underline">
+                        View Full Log <span class="material-symbols-outlined ml-1">chevron_right</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- History Rows -->
+<div class="glass-card rounded-2xl p-4 flex items-center space-x-8 group hover:bg-white/60 transition-colors">
+<div class="w-24 text-sm font-bold text-slate-500">Oct 24, 2023</div>
+<div class="flex-1 h-3 flex rounded-full overflow-hidden bg-slate-100">
+<div class="h-full bg-primary" style="width: 40%"></div>
+<div class="h-full bg-secondary" style="width: 30%"></div>
+<div class="h-full bg-tertiary" style="width: 15%"></div>
+<div class="h-full bg-primary-fixed-dim" style="width: 15%"></div>
+</div>
+<div class="w-12 text-right text-xs font-black text-on-surface">7.2</div>
+</div>
+<div class="glass-card rounded-2xl p-4 flex items-center space-x-8 group hover:bg-white/60 transition-colors">
+<div class="w-24 text-sm font-bold text-slate-500">Oct 23, 2023</div>
+<div class="flex-1 h-3 flex rounded-full overflow-hidden bg-slate-100">
+<div class="h-full bg-primary" style="width: 25%"></div>
+<div class="h-full bg-secondary" style="width: 45%"></div>
+<div class="h-full bg-tertiary" style="width: 20%"></div>
+<div class="h-full bg-primary-fixed-dim" style="width: 10%"></div>
+</div>
+<div class="w-12 text-right text-xs font-black text-on-surface">5.4</div>
+</div>
+<div class="glass-card rounded-2xl p-4 flex items-center space-x-8 group hover:bg-white/60 transition-colors">
+<div class="w-24 text-sm font-bold text-slate-500">Oct 22, 2023</div>
+<div class="flex-1 h-3 flex rounded-full overflow-hidden bg-slate-100">
+<div class="h-full bg-primary" style="width: 60%"></div>
+<div class="h-full bg-secondary" style="width: 15%"></div>
+<div class="h-full bg-tertiary" style="width: 10%"></div>
+<div class="h-full bg-primary-fixed-dim" style="width: 15%"></div>
+</div>
+<div class="w-12 text-right text-xs font-black text-on-surface">8.1</div>
+</div>
+<div class="glass-card rounded-2xl p-4 flex items-center space-x-8 group hover:bg-white/60 transition-colors">
+<div class="w-24 text-sm font-bold text-slate-500">Oct 21, 2023</div>
+<div class="flex-1 h-3 flex rounded-full overflow-hidden bg-slate-100">
+<div class="h-full bg-primary" style="width: 30%"></div>
+<div class="h-full bg-secondary" style="width: 20%"></div>
+<div class="h-full bg-tertiary" style="width: 40%"></div>
+<div class="h-full bg-primary-fixed-dim" style="width: 10%"></div>
+</div>
+<div class="w-12 text-right text-xs font-black text-on-surface">4.8</div>
+</div>
+</div>
+</section>
+<!-- Action Plan Section -->
+<section class="space-y-8">
+<div>
+<h3 class="text-2xl font-extrabold font-headline">Recommended Actions</h3>
+<p class="text-on-surface-variant font-medium">Curated interventions based on your unique stress vectors.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Lifestyle Card -->
+<div class="glass-card rounded-[2rem] p-6 flex flex-col h-full border border-white/50 group hover:-translate-y-2 transition-all duration-300">
+<div class="w-12 h-12 rounded-2xl bg-primary-container text-primary flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">fitness_center</span>
+</div>
+<h5 class="text-lg font-bold font-headline mb-2">Lifestyle Adjust</h5>
+<p class="text-sm text-on-surface-variant flex-1">Reduce caffeine intake after 2 PM to stabilize evening BP levels.</p>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-xs font-bold text-primary uppercase tracking-widest">Details</button>
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">check</span>
+</button>
+</div>
+</div>
+<!-- Social Card -->
+<div class="glass-card rounded-[2rem] p-6 flex flex-col h-full border border-white/50 group hover:-translate-y-2 transition-all duration-300">
+<div class="w-12 h-12 rounded-2xl bg-secondary-container text-secondary flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">group</span>
+</div>
+<h5 class="text-lg font-bold font-headline mb-2">Social Connection</h5>
+<p class="text-sm text-on-surface-variant flex-1">Schedule a 15-min check-in with a peer to boost oxytocin levels.</p>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-xs font-bold text-secondary uppercase tracking-widest">Details</button>
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-secondary shadow-sm hover:bg-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Focus Card -->
+<div class="glass-card rounded-[2rem] p-6 flex flex-col h-full border border-white/50 group hover:-translate-y-2 transition-all duration-300">
+<div class="w-12 h-12 rounded-2xl bg-tertiary-container text-tertiary flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">track_changes</span>
+</div>
+<h5 class="text-lg font-bold font-headline mb-2">Focus Sprint</h5>
+<p class="text-sm text-on-surface-variant flex-1">Break your thesis into 3 atomic tasks to reduce future-anxiety.</p>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-xs font-bold text-tertiary uppercase tracking-widest">Details</button>
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-tertiary shadow-sm hover:bg-tertiary hover:text-white transition-colors">
+<span class="material-symbols-outlined">check</span>
+</button>
+</div>
+</div>
+<!-- Breathing Card -->
+<div class="glass-card rounded-[2rem] p-6 flex flex-col h-full border border-white/50 group hover:-translate-y-2 transition-all duration-300">
+<div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined">air</span>
+</div>
+<h5 class="text-lg font-bold font-headline mb-2">Guided Breathing</h5>
+<p class="text-sm text-on-surface-variant flex-1">4-7-8 technique for 5 mins to down-regulate nervous system.</p>
+<div class="mt-8 flex justify-between items-center">
+<button class="text-xs font-bold text-teal-600 uppercase tracking-widest">Details</button>
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-teal-600 shadow-sm hover:bg-teal-600 hover:text-white transition-colors">
+<span class="material-symbols-outlined">check</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

@@ -40,69 +40,70 @@ import { analyzeSurveyData, AIRecommendation } from './services/geminiService';
 import { translations } from './translations';
 
 const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confidence: number, t?: (key: string) => string, isDarkMode?: boolean }) => {
-  // Gauge arc: left = -90° (Low), center = 0° (Medium), right = +90° (High)
-  // Each zone spans 60°, confidence (0–1) fine-tunes within the zone
-  let rotation = 0;
-  const c = Math.max(0, Math.min(1, confidence)); // clamp to [0,1]
-  if (level === 'Low') {
-    // Zone: -90° to -30°. Higher confidence = more confidently Low (stay left)
-    rotation = -90 + (1 - c) * 60;
-  } else if (level === 'Medium') {
-    // Zone: -30° to +30°
-    rotation = -30 + c * 60;
-  } else {
-    // Zone: +30° to +90°. Higher confidence = more confidently High (stay right)
-    rotation = 30 + c * 60;
-  }
+  // Arc progress: Low=25%, Medium=55%, High=85% of the arc
+  const arcProgress = level === 'Low' ? 0.25 : level === 'Medium' ? 0.55 : 0.85;
+  
+  // SVG arc calculation for a half-circle gauge
+  const cx = 50, cy = 50, r = 40;
+  const startAngle = Math.PI; // 180°
+  const endAngle   = startAngle + arcProgress * Math.PI;
+  const x1 = cx + r * Math.cos(startAngle);
+  const y1 = cy + r * Math.sin(startAngle);
+  const x2 = cx + r * Math.cos(endAngle);
+  const y2 = cy + r * Math.sin(endAngle);
+  const largeArc = arcProgress > 0.5 ? 1 : 0;
+  const arcPath  = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 
-  const levelText = level === 'Low' ? 'LOW' : level === 'Medium' ? 'MEDIUM' : 'HIGH';
-  const levelColor = level === 'Low' ? '#6ee7b7' : level === 'Medium' ? '#fcd34d' : '#fb7185';
+  const levelDisplay = level === 'Low' ? 'Low' : level === 'Medium' ? 'Medium' : 'High';
+  const levelColor   = level === 'Low' ? '#006b60' : level === 'Medium' ? '#006b60' : '#a53173';
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-64 h-32 overflow-hidden">
-        <svg viewBox="0 0 200 100" className="w-full h-full">
+      <div className="relative w-56 h-28 overflow-hidden">
+        <svg viewBox="0 0 100 55" className="w-full h-full">
           <defs>
-            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#6ee7b7" />
-              <stop offset="50%" stopColor="#fcd34d" />
-              <stop offset="100%" stopColor="#fb7185" />
+            <linearGradient id="gaugeGradientNew" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   style={{ stopColor: '#5bf4de', stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: '#6e3bd8', stopOpacity: 1 }} />
             </linearGradient>
-            <filter id="shadow">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.3" />
-            </filter>
           </defs>
+          {/* Track */}
           <path
-            d="M 20 90 A 70 70 0 0 1 180 90"
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
-            stroke="url(#gaugeGradient)"
-            strokeWidth="20"
+            stroke={isDarkMode ? '#1e293b' : '#dde3e7'}
+            strokeWidth="8"
             strokeLinecap="round"
           />
-          <g transform="translate(100, 90)">
-            <motion.g
-              initial={{ rotate: -90 }}
-              animate={{ rotate: rotation }}
-              transition={{ duration: 1.5, type: "spring", bounce: 0.25 }}
-            >
-              <path d="M -4 0 L 0 -66 L 4 0 Z" fill={isDarkMode ? '#94a3b8' : '#475569'} filter="url(#shadow)" />
-              <circle cx="0" cy="0" r="7" fill={isDarkMode ? '#1e293b' : '#0f172a'} />
-              <circle cx="0" cy="0" r="3" fill="#94a3b8" />
-            </motion.g>
-          </g>
+          {/* Filled arc */}
+          <motion.path
+            d={arcPath}
+            fill="none"
+            stroke="url(#gaugeGradientNew)"
+            strokeWidth="10"
+            strokeLinecap="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.4, ease: 'easeOut' }}
+          />
         </svg>
       </div>
-      <div className="text-center mt-4">
-        <div className={`text-lg font-bold mb-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-          {t ? t('results.gaugeTitle') : 'Mức độ Stress Hiện tại:'} <span style={{ color: levelColor }}>{t ? t(`results.${level.toLowerCase()}`) : levelText}</span>
+      <div className="text-center -mt-2">
+        <div
+          className="text-4xl font-black leading-tight"
+          style={{ color: levelColor, fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}
+        >
+          {levelDisplay}
         </div>
-        <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          {t ? t('results.gaugeConf') : 'Độ Tự tin (Confidence):'} {Math.round(confidence * 100)}%
+        <div className={`text-xs font-semibold mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+          {Math.round(confidence * 100)}% Confidence Interval
         </div>
       </div>
     </div>
   );
 };
+
 
 // Fallback palette for history entries that may have been saved without colors
 const BAR_FALLBACK_COLORS = ['#6ee7b7','#2dd4bf','#c084fc','#94a3b8','#fb7185','#fbbf24','#60a5fa','#a78bfa'];
@@ -131,38 +132,42 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
   );
 };
 
-const ActionCard = ({ id, title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, key?: string }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
 
+const ActionCard = ({ title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, key?: string }) => {
   return (
-    <div 
-      className="relative group bg-white/20 dark:bg-slate-800/60 backdrop-blur-3xl border border-white/40 dark:border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-slate-900/40 rounded-[2rem] overflow-hidden p-6 flex items-start gap-4 cursor-pointer hover:bg-white/30 dark:hover:bg-slate-800/80 hover:scale-[1.01] transition-all duration-300"
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)] bg-white/40 dark:bg-white/10 ${colorClass}`}>
-        <Icon className="w-6 h-6" />
+    <div className="analytics-glass-card dark:bg-slate-800/50 border border-white/50 dark:border-white/10 shadow-[0_8px_24px_rgba(45,51,55,0.06)] rounded-[2rem] overflow-hidden p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-2 group">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${colorClass}`}
+        style={{ boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8)' }}>
+        <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1">
-        <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{title}</h4>
-        <p className={`text-slate-600 dark:text-slate-400 text-sm transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
+        <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2"
+          style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{title}</h4>
+        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed line-clamp-4"
+          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
           {description}
         </p>
       </div>
-      <div className="flex flex-col items-center gap-2">
-        <button 
+      <div className="mt-6 flex items-center justify-between">
+        <span className={`text-[10px] font-bold uppercase tracking-widest ${isBookmarked ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}
+          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+          Details
+        </span>
+        <button
           onClick={onBookmark}
-          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${isBookmarked ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700' : 'bg-slate-100 dark:bg-white/10 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/20 border border-slate-200 dark:border-white/20'}`}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 border
+            ${isBookmarked
+              ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-200'
+              : 'bg-white dark:bg-white/10 text-slate-400 border-slate-200 dark:border-white/20 hover:bg-teal-600 hover:text-white hover:border-teal-600'}`}
           aria-label={bookmarkAriaLabel}
         >
-          {isBookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
+          {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
         </button>
-        <div className="w-8 h-8 rounded-full bg-white/30 dark:bg-white/10 border border-white/40 dark:border-white/20 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/20 transition-all shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)]">
-          <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-        </div>
       </div>
     </div>
   );
 };
+
 
 type ActionCardItem = {
   id: string;
@@ -873,7 +878,7 @@ export default function App() {
   const insightCopy = aiResult ? buildInsightCopy(aiResult) : null;
   const insightMeta = aiResult
     ? {
-        levelLabel: t(`results.${aiResult.stress_level.toLowerCase()}`),
+        levelLabel: aiResult.stress_level === 'Low' ? 'Low' : aiResult.stress_level === 'Medium' ? 'Medium' : 'High',
         confidencePct: Math.round(aiResult.confidence_score * 100),
         topFeatures: [...aiResult.feature_importance].sort((a, b) => b.importance - a.importance).slice(0, 2)
       }
@@ -1695,7 +1700,7 @@ export default function App() {
             key="survey"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="container mx-auto px-6 min-h-[100dvh] flex flex-col items-center justify-center py-24 max-w-3xl w-full"
+            className={`container mx-auto px-6 min-h-[100dvh] flex flex-col w-full ${isCompleted ? 'items-stretch justify-start pt-24 pb-12 max-w-[1360px]' : 'items-center justify-center py-24 max-w-3xl'}`}
           >
             {!isCompleted ? (
               <div className={`relative rounded-[2rem] overflow-hidden p-8 md:p-12 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/80 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
@@ -1765,154 +1770,250 @@ export default function App() {
                     <p className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>{t('survey.analyzingDesc')}</p>
                   </div>
                 ) : aiResult ? (
-                  <div className="text-left w-full max-w-4xl mx-auto">
-                    
-                    {/* 1. Biểu đồ Gauge */}
-                    <div className="mb-12 flex flex-col items-center">
-                      <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
-                    </div>
-
-                    {/* 2. Biểu đồ Stacked Bar - Yếu tố tác động */}
-                    <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
-                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.featureTitle')}</h3>
-                      
-                      {/* Legend */}
-                      <div className="flex flex-wrap justify-center gap-4 mb-4">
-                        {aiResult.feature_importance.map((item: any, idx: number) => (
-                          <div key={`legend-${item.feature}-${idx}`} className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${isDarkMode ? 'text-gray-300 bg-white/10 border-white/20' : 'text-slate-600 bg-white/80 border-slate-100 shadow-sm'}`}>
-                            <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: item.color }}></span>
-                            {item.feature}
-                          </div>
-                        ))}
-                      </div>
-
-                      <CustomStackedBar data={aiResult.feature_importance} height="h-16" />
-                    </div>
-
-                    {/* 2.5. Tổng hợp kết quả khảo sát */}
-                    <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-gradient-to-br from-slate-900/70 via-slate-900/40 to-slate-800/40 border-white/10' : 'bg-gradient-to-br from-white/80 via-white/60 to-white/40 backdrop-blur-3xl border-white/60'}`}>
-                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.insightTitle')}</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className={`rounded-2xl p-5 border ${isDarkMode ? 'bg-[#0b132b]/60 border-white/10' : 'bg-white/90 border-slate-100 shadow-sm'}`}>
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
-                              <Info className="w-5 h-5" />
+                  <div className="text-left w-full max-w-[1320px] mx-auto analytics-liquid-bg rounded-[2.5rem] p-4 md:p-6">
+                    <section className={`rounded-[2.75rem] p-6 md:p-8 xl:p-10 shadow-[0_24px_90px_rgba(45,51,55,0.06)] ${isDarkMode ? 'bg-slate-900/40 border border-white/10' : ''} lg:min-h-[640px]`}>
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                        <aside className={`lg:col-span-3 analytics-glass-card rounded-[2rem] p-6 ${isDarkMode ? 'dark' : ''}`}>
+                          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400"
+                            style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Data Module</div>
+                          <div className="mt-5 space-y-1.5">
+                            <div className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-default ${isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-white/60'}`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                              <BarChart2 className="w-4 h-4" /> Dashboard
                             </div>
-                            <div className="flex-1">
-                              <h4 className={`text-base font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-slate-800'}`}>{t('results.trendsTitle')}</h4>
-                              <div className="flex flex-wrap items-center gap-2 mb-3">
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${levelBadgeClass(aiResult?.stress_level)}`}>
-                                  {insightMeta?.levelLabel || t('results.medium')}
-                                </span>
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${isDarkMode ? 'bg-white/5 text-slate-200 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
-                                  {t('results.gaugeConf')} {insightMeta?.confidencePct ?? 0}%
-                                </span>
+                            <div className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                              <Brain className="w-4 h-4" /> Analytics
+                            </div>
+                          </div>
+                        </aside>
+
+                        <div className="lg:col-span-9 flex flex-col gap-8">
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                            <div>
+                              <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                                style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Student Wellness Analysis and Action Plan</h2>
+                              <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>An editorial view of your cognitive load and recovery vectors.</p>
+                            </div>
+                            <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                              <Activity className="w-4 h-4" /> Last 30 Days
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 flex-1">
+                            {/* Stress Load Card */}
+                            <div className={`lg:col-span-5 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+                              <div className="flex items-start justify-between gap-3 mb-4">
+                                <div>
+                                  <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Load</h3>
+                                  <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Real-time physiological proxy</p>
+                                </div>
+                                <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}
+                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
                               </div>
-                              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                                {insightCopy?.trends || t('results.trendsDesc')}
-                              </p>
+                              <div className="flex flex-col items-center justify-center py-2">
+                                <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
+                              </div>
+                              <div className="mt-4 pt-4 grid grid-cols-3 gap-2" style={{ borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                                <div className="text-center">
+                                  <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Status</div>
+                                  <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{insightMeta?.levelLabel || 'Medium'}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Trend</div>
+                                  <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stable</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Baseline</div>
+                                  <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.max(0, Math.round((insightMeta?.confidencePct ?? 0) * 0.8))}%</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Impact Factors Card */}
+                            <div className={`lg:col-span-7 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+                              <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                                style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Impact Factors</h3>
+                              <p className={`text-sm mb-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Primary drivers of current stress state</p>
+                              <div className="w-full h-12 rounded-full overflow-hidden flex" style={{ background: isDarkMode ? '#1e293b' : '#eaeef1' }}>
+                                {aiResult.feature_importance.map((item: any, idx: number) => {
+                                  const total = aiResult.feature_importance.reduce((s: number, f: any) => s + f.importance, 0);
+                                  const pct = total > 0 ? (item.importance / total) * 100 : 0;
+                                  const color = (!item.color || item.color === '#f3f4f6') ? ['#006b60','#6e3bd8','#a53173','#48e5d0'][idx % 4] : item.color;
+                                  return (
+                                    <div key={`bar-${idx}`} style={{ width: `${pct}%`, backgroundColor: color }}
+                                      className="h-full flex items-center justify-center text-[10px] text-white font-bold"
+                                      title={`${item.feature}: ${Math.round(item.importance)}%`}>
+                                      {pct > 8 ? Math.round(item.importance) : ''}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                                {aiResult.feature_importance.slice(0, 4).map((item: any, idx: number) => {
+                                  const dotColors = ['#006b60','#6e3bd8','#a53173','#48e5d0'];
+                                  const dotColor = (!item.color || item.color === '#f3f4f6') ? dotColors[idx % 4] : item.color;
+                                  return (
+                                    <div key={`fi-${idx}`} className={`flex items-start gap-3 p-3 rounded-2xl ${isDarkMode ? 'bg-white/5' : 'bg-white/40'}`}>
+                                      <span className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: dotColor }} />
+                                      <div>
+                                        <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.feature}</div>
+                                        <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% Impact</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Prominent Trends + Critical Touchpoints */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}>
+                                <Activity className="w-6 h-6" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Prominent Trends</h4>
+                                  <Info className={`w-4 h-4 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-300'}`} />
+                                </div>
+                                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                  {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                                <CheckCircle2 className="w-6 h-6" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {(insightMeta?.topFeatures || []).map((item, idx) => (
+                                    <span key={`touch-${idx}`}
+                                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
+                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                      {item.feature} ({Math.round(item.importance)}%)
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className={`rounded-2xl p-5 border ${isDarkMode ? 'bg-[#0b132b]/60 border-white/10' : 'bg-white/90 border-slate-100 shadow-sm'}`}>
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
-                              <Info className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className={`text-base font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-slate-800'}`}>{t('results.touchpointsTitle')}</h4>
-                              <div className="flex flex-wrap items-center gap-2 mb-3">
-                                {(insightMeta?.topFeatures || []).map((item, idx) => (
-                                  <span
-                                    key={`touch-${item.feature}-${idx}`}
-                                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${isDarkMode ? 'bg-white/5 text-slate-200 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-100'}`}
-                                  >
-                                    {item.feature} {Math.round(item.importance)}%
-                                  </span>
-                                ))}
-                              </div>
-                              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-                                {insightCopy?.touchpoints || t('results.touchpointsDesc')}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
                       </div>
-                    </div>
+                    </section>
 
-                    {/* 3. Biểu đồ Line/Bar (Lịch sử ẩn danh) */}
                     {sessionHistory.length > 0 && (
-                      <div className={`mb-12 p-6 rounded-[2rem] border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`}>
-                        <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.historyTitle')}</h3>
-                        <div className="space-y-4">
-                          {sessionHistory.map((session, idx) => (
-                            <div key={`history-${session.date}-${idx}`} className={`flex items-center gap-4 border p-4 rounded-xl ${isDarkMode ? 'bg-[#0b132b]/50 border-white/10' : 'bg-white/80 border-slate-100 shadow-sm'}`}>
-                              <div className={`px-4 py-2 rounded-xl text-sm font-extrabold whitespace-nowrap shadow-inner ${
-                                session.level === 'High' ? 'bg-red-50 text-red-600 border border-red-100' :
-                                session.level === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                                'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                              }`}>
-                                {session.date}
-                              </div>
-                              <div className="flex-1">
-                                {session.features && <CustomStackedBar data={session.features} height="h-10" showLabels={false} />}
-                              </div>
-                            </div>
-                          ))}
+                      <section className="mt-8 space-y-5">
+                        <div className="flex items-end justify-between gap-4">
+                          <div>
+                            <h3 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-900'}`}
+                              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Anonymous History</h3>
+                            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Aggregated stress distribution over time</p>
+                          </div>
+                          <button className={`${isDarkMode ? 'text-teal-300' : 'text-teal-700'} text-sm font-semibold flex items-center gap-1 hover:underline`}
+                            style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>View Full Log <ArrowRight className="w-3.5 h-3.5" /></button>
                         </div>
-                      </div>
+                        <div className={`p-5 rounded-[2rem] border ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/25 backdrop-blur-3xl border-white/40'}`}>
+                          <div className="space-y-3">
+                            {sessionHistory.slice(0, 5).map((session, idx) => {
+                              const score = session.level === 'High' ? '8.1' : session.level === 'Medium' ? '6.2' : '4.8';
+                              return (
+                                <div key={`history-${session.date}-${idx}`}
+                                  className={`analytics-glass-card rounded-2xl p-4 flex items-center gap-6 border border-white/40 group hover:bg-white/60 transition-colors ${isDarkMode ? 'dark' : ''}`}>
+                                  <div className={`w-24 text-xs font-bold shrink-0 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{session.date}</div>
+                                  <div className="flex-1">
+                                    {session.features && (
+                                      <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
+                                        {session.features.map((f: any, fi: number) => {
+                                          const ftotal = session.features.reduce((s: number, x: any) => s + x.importance, 0);
+                                          const fpct = ftotal > 0 ? (f.importance / ftotal) * 100 : 0;
+                                          const fcolor = (!f.color || f.color === '#f3f4f6') ? ['#006b60','#6e3bd8','#a53173','#48e5d0'][fi % 4] : f.color;
+                                          return <div key={fi} style={{ width: `${fpct}%`, backgroundColor: fcolor }} className="h-full" />;
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className={`w-10 text-right text-xs font-black ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{score}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </section>
                     )}
 
-                    {/* 4. Action Cards — icon mapped by language-agnostic categoryKey */}
-                    <div className="mb-12">
-                      <h3 className={`text-xl font-extrabold mb-6 text-center tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t('results.recsTitle')}</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        {(showAllRecs ? actionCards : actionCards.slice(0, 5)).map((rec, idx) => {
+                    <section className="mt-10 mb-12 space-y-5">
+                      <div>
+                        <h3 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-900'}`}
+                          style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Recommended Actions</h3>
+                        <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Curated interventions based on your unique stress vectors.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                        {(showAllRecs ? actionCards : actionCards.slice(0, 4)).map((rec) => {
                           const key = rec.categoryKey || '';
-                           let Icon = Brain;
-                           let colorClass = isDarkMode ? 'text-blue-300' : 'text-blue-600';
-                           if (key === 'sleep')    { Icon = Moon;        colorClass = isDarkMode ? 'text-emerald-300' : 'text-emerald-600'; }
-                           else if (key === 'study')   { Icon = BookOpen;    colorClass = isDarkMode ? 'text-teal-300' : 'text-teal-600'; }
-                           else if (key === 'social')  { Icon = Users;       colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
-                           else if (key === 'exercise'){ Icon = Activity;    colorClass = isDarkMode ? 'text-slate-300' : 'text-slate-600'; }
-                           else if (key === 'finance') { Icon = DollarSign;  colorClass = isDarkMode ? 'text-rose-300' : 'text-rose-600'; }
-                           else if (key === 'mental')  { Icon = HeartHandshake; colorClass = isDarkMode ? 'text-purple-300' : 'text-purple-600'; }
+                          let Icon = Brain;
+                          let colorClass = isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700';
+                          if (key === 'sleep') { Icon = Moon; colorClass = isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'; }
+                          else if (key === 'study') { Icon = BookOpen; colorClass = isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'; }
+                          else if (key === 'social') { Icon = Users; colorClass = isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'; }
+                          else if (key === 'exercise') { Icon = Activity; colorClass = isDarkMode ? 'bg-pink-500/20 text-pink-300' : 'bg-pink-100 text-pink-700'; }
+                          else if (key === 'finance') { Icon = DollarSign; colorClass = isDarkMode ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'; }
+                          else if (key === 'mental') { Icon = HeartHandshake; colorClass = isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'; }
 
-                           return (
-                             <ActionCard 
+                          return (
+                            <ActionCard
                               key={rec.id}
                               id={rec.id}
                               title={rec.title}
                               description={rec.description}
-                               icon={Icon}
-                               colorClass={colorClass}
-                               isBookmarked={bookmarkedRecs.includes(rec.id)}
-                               bookmarkAriaLabel={t('results.saveRec')}
-                               onBookmark={(e) => {
-                                 e.stopPropagation();
-                                 toggleBookmark(rec.id);
-                               }}
-                             />
-                           );
-                         })}
+                              icon={Icon}
+                              colorClass={colorClass}
+                              isBookmarked={bookmarkedRecs.includes(rec.id)}
+                              bookmarkAriaLabel={t('results.saveRec')}
+                              onBookmark={(e) => {
+                                e.stopPropagation();
+                                toggleBookmark(rec.id);
+                              }}
+                            />
+                          );
+                        })}
                       </div>
-                      {/* Show more / show less toggle */}
-                      {actionCards.length > 5 && (
-                         <div className="text-center mt-6">
-                           <button
-                             onClick={() => setShowAllRecs(prev => !prev)}
-                             className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} font-medium text-sm underline underline-offset-4`}
-                           >
-                             {showAllRecs
-                               ? (language === 'vi' ? 'Thu gọn' : language === 'de' ? 'Weniger anzeigen' : language === 'zh' ? '收起' : 'Show less')
-                               : (language === 'vi' ? `Xem thêm ${actionCards.length - 5} gợi ý` : language === 'de' ? `${actionCards.length - 5} weitere anzeigen` : language === 'zh' ? `查看更多 ${actionCards.length - 5} 条建议` : `Show ${actionCards.length - 5} more`)
-                             }
-                           </button>
-                         </div>
-                       )}
-                     </div>
+                      {actionCards.length > 4 && (
+                        <div className="text-center mt-6">
+                          <button
+                            onClick={() => setShowAllRecs(prev => !prev)}
+                            className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} font-medium text-sm underline underline-offset-4`}
+                          >
+                            {showAllRecs ? 'Show less' : `Show ${actionCards.length - 4} more`}
+                          </button>
+                        </div>
+                      )}
+                    </section>
 
-                    {/* 5. Disclaimer & Quyền riêng tư */}
                     <div className="mt-12 pt-8 border-t border-gray-100/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
                       <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>{t('results.disclaimer')}</p>
                       <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium ${isDarkMode ? 'bg-green-900/30 text-green-400 border border-green-800/50' : 'bg-green-50 text-green-700'}`}>

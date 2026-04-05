@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mindscan.ai | Student Stress Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .gradient-bg {
+      background: radial-gradient(circle at 0% 0%, #e2fff8 0%, transparent 50%),
+                  radial-gradient(circle at 100% 0%, #e9ddff 0%, transparent 50%),
+                  radial-gradient(circle at 100% 100%, #ff99ca 0%, transparent 50%),
+                  radial-gradient(circle at 0% 100%, #5bf4de 0%, transparent 50%),
+                  #f7f9fb;
+      background-attachment: fixed;
+    }
+    /* Hide scrollbars but allow scrolling */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-dim": "#005e54",
+            "inverse-surface": "#0b0f10",
+            "on-primary": "#e2fff8",
+            "on-primary-fixed": "#00443c",
+            "tertiary-fixed": "#ff99ca",
+            "secondary-fixed": "#e9ddff",
+            "background": "#f7f9fb",
+            "surface-variant": "#dde3e7",
+            "on-tertiary-container": "#6e0048",
+            "tertiary-dim": "#952467",
+            "on-secondary-fixed-variant": "#6a37d4",
+            "outline": "#757c7f",
+            "tertiary": "#a53173",
+            "surface-container": "#eaeef1",
+            "on-error": "#fff7f6",
+            "error-dim": "#70030f",
+            "on-primary-fixed-variant": "#006358",
+            "on-error-container": "#65000b",
+            "error-container": "#f56965",
+            "outline-variant": "#acb3b7",
+            "on-secondary": "#fdf7ff",
+            "surface-bright": "#f7f9fb",
+            "surface-container-low": "#f1f4f6",
+            "primary": "#006b60",
+            "on-background": "#2d3337",
+            "surface-tint": "#006b60",
+            "inverse-primary": "#65fde6",
+            "inverse-on-surface": "#9a9d9f",
+            "on-primary-container": "#00594f",
+            "surface": "#f7f9fb",
+            "on-surface": "#2d3337",
+            "on-tertiary": "#fff7f8",
+            "on-surface-variant": "#596063",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#48e5d0",
+            "on-tertiary-fixed": "#46002c",
+            "surface-container-highest": "#dde3e7",
+            "on-secondary-container": "#6029c9",
+            "surface-container-high": "#e3e9ec",
+            "tertiary-fixed-dim": "#ff81c1",
+            "on-tertiary-fixed-variant": "#7b0852",
+            "secondary": "#6e3bd8",
+            "error": "#ac3434",
+            "tertiary-container": "#ff99ca",
+            "on-secondary-fixed": "#4d00b7",
+            "secondary-dim": "#622bcb",
+            "primary-container": "#5bf4de",
+            "secondary-fixed-dim": "#ddcdff",
+            "secondary-container": "#e9ddff",
+            "primary-fixed": "#5bf4de",
+            "surface-dim": "#d3dbdf"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+</head>
+<body class="gradient-bg font-body text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl docked full-width top-0 z-50 shadow-[0_24px_48px_rgba(45,51,55,0.04)] fixed w-full">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-extrabold tracking-tight text-teal-700 dark:text-teal-300 font-headline">Mindscan.ai</span>
+<h1 class="hidden md:block text-slate-500 font-medium text-sm tracking-wide uppercase">Student Stress Analysis Dashboard</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all scale-95 active:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all scale-95 active:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary-container overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a young male student with a thoughtful expression in a bright modern library setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIGomUhPIIxk-eR4uah7myQkkNzhavgZAR72mTInqu-f5XqyMExMkSKih-FL0csaDJIlZeW8EMI1namgkpBmAhe4_ynhotb2VjhLyKPsvfRBeCCVc9fdWLlT5NWp1ofDjdNeq3oqHEOVVhV7f9lQONbAVKTdQ-GC8z-pbaQYNrVJmh7dnm39GoEgA-s3PhIEHce-5meuyjLPYk5qiawHyf2Frw0S18HD06o6Z6H2A8wmDRCSX6VM01VMjj05WuZ_DJGiCwlOk7QuRC"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-2xl p-4 space-y-8 z-40">
+<div class="pt-20 px-4">
+<h2 class="font-headline font-bold text-xl text-teal-600 dark:text-teal-400">Welcome back</h2>
+<p class="text-slate-500 text-sm">Ready for reflection?</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 px-4 py-3 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-xl font-bold translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-label">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/20 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-sm font-label">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/20 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-sm font-label">Mood Log</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/20 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-label">Peer Insights</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-teal-600 hover:bg-teal-50/50 dark:hover:bg-teal-900/20 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-sm font-label">Resources</span>
+</a>
+</nav>
+<div class="pb-4 px-2">
+<button class="w-full py-3 bg-gradient-to-r from-primary to-primary-dim text-white rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+        New Entry
+      </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:pl-64 pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
+<!-- Hero Section -->
+<section class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-headline font-extrabold text-4xl md:text-5xl text-on-surface tracking-tight mb-2">Cognitive Sanctuary</h2>
+<p class="text-on-surface-variant max-w-xl text-lg leading-relaxed">Your mental wellbeing narrative, visualized through the lens of data and mindfulness. Reflect on your patterns to find your flow.</p>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full text-sm font-bold text-primary">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+          April 2024 Performance
+        </div>
+</div>
+</section>
+<!-- Top Row: Radar & Doughnut -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+<!-- Radar Chart -->
+<div class="lg:col-span-7 liquid-glass rounded-3xl p-8 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline font-bold text-xl text-on-surface">Life Balance</h3>
+<span class="material-symbols-outlined text-primary">info</span>
+</div>
+<div class="flex-1 flex items-center justify-center relative min-h-[320px]">
+<!-- Visual representation of Radar Chart -->
+<div class="absolute inset-0 flex items-center justify-center opacity-10">
+<div class="w-64 h-64 border border-on-surface rounded-full"></div>
+<div class="absolute w-48 h-48 border border-on-surface rounded-full"></div>
+<div class="absolute w-32 h-32 border border-on-surface rounded-full"></div>
+</div>
+<div class="relative w-full h-full flex items-center justify-center">
+<div class="w-64 h-64 bg-primary/20 backdrop-blur-sm" style="clip-path: polygon(50% 0%, 90% 40%, 75% 90%, 25% 90%, 10% 40%);"></div>
+<div class="absolute w-64 h-64 bg-secondary/10 backdrop-blur-[2px]" style="clip-path: polygon(50% 20%, 80% 50%, 65% 85%, 35% 85%, 20% 50%); border: 2px solid #6e3bd8;"></div>
+<!-- Labels -->
+<span class="absolute top-0 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Study</span>
+<span class="absolute top-[35%] right-0 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Sleep</span>
+<span class="absolute bottom-0 right-[20%] text-xs font-bold uppercase tracking-wider text-on-surface-variant">Social</span>
+<span class="absolute bottom-0 left-[20%] text-xs font-bold uppercase tracking-wider text-on-surface-variant">Finance</span>
+<span class="absolute top-[35%] left-0 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Exercise</span>
+</div>
+</div>
+</div>
+<!-- Doughnut Chart -->
+<div class="lg:col-span-5 liquid-glass rounded-3xl p-8">
+<h3 class="font-headline font-bold text-xl text-on-surface mb-8">Stress Sources</h3>
+<div class="flex flex-col items-center">
+<div class="relative w-48 h-48 mb-8">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="45, 100" stroke-width="6"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="30, 100" stroke-dashoffset="-45" stroke-width="6"></path>
+<path class="text-tertiary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="15, 100" stroke-dashoffset="-75" stroke-width="6"></path>
+<path class="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="10, 100" stroke-dashoffset="-90" stroke-width="6"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-3xl font-bold font-headline text-on-surface">Total</span>
+<span class="text-sm text-on-surface-variant">8.4/10</span>
+</div>
+</div>
+<div class="w-full grid grid-cols-2 gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-sm font-medium">Study 45%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-sm font-medium">Finance 30%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-sm font-medium">Social 15%</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-surface-container-highest"></div>
+<span class="text-sm font-medium">Other 10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Row: Area Chart & Mood Calendar -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+<!-- Area Gradient Chart -->
+<div class="lg:col-span-8 liquid-glass rounded-3xl p-8">
+<div class="flex justify-between items-center mb-10">
+<h3 class="font-headline font-bold text-xl text-on-surface">Stress Trend</h3>
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-full bg-primary-container text-primary font-bold text-xs uppercase tracking-wider">Weekly</button>
+<button class="px-4 py-1.5 rounded-full bg-transparent text-on-surface-variant font-bold text-xs uppercase tracking-wider hover:bg-slate-100/50">Monthly</button>
+</div>
+</div>
+<div class="relative h-64 w-full">
+<!-- Flowing area graph visualization -->
+<svg class="w-full h-full preserve-3d" viewbox="0 0 800 200">
+<defs>
+<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#006b60" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#006b60" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,150 C100,140 200,180 300,140 C400,100 500,120 600,80 C700,40 800,60 800,60 L800,200 L0,200 Z" fill="url(#areaGradient)"></path>
+<path d="M0,150 C100,140 200,180 300,140 C400,100 500,120 600,80 C700,40 800,60 800,60" fill="none" stroke="#006b60" stroke-linecap="round" stroke-width="4"></path>
+<!-- Circles for data points -->
+<circle cx="300" cy="140" fill="#006b60" r="6"></circle>
+<circle cx="600" cy="80" fill="#006b60" r="6"></circle>
+</svg>
+<div class="flex justify-between mt-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+<span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+</div>
+</div>
+</div>
+<!-- Mood Calendar Heatmap -->
+<div class="lg:col-span-4 liquid-glass rounded-3xl p-8">
+<h3 class="font-headline font-bold text-xl text-on-surface mb-6">Mood Calendar</h3>
+<div class="grid grid-cols-7 gap-2">
+<!-- Calendar Header -->
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">M</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">T</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">W</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">T</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">F</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">S</div>
+<div class="text-[10px] font-bold text-on-surface-variant text-center uppercase">S</div>
+<!-- Heatmap Nodes (Simulation of 30 days) -->
+<!-- Row 1 -->
+<div class="aspect-square rounded-lg bg-primary-container/60"></div>
+<div class="aspect-square rounded-lg bg-primary-container"></div>
+<div class="aspect-square rounded-lg bg-primary-container/40"></div>
+<div class="aspect-square rounded-lg bg-error-container/40"></div>
+<div class="aspect-square rounded-lg bg-error-container"></div>
+<div class="aspect-square rounded-lg bg-primary-container/80"></div>
+<div class="aspect-square rounded-lg bg-primary-container"></div>
+<!-- Row 2 -->
+<div class="aspect-square rounded-lg bg-primary-container/40"></div>
+<div class="aspect-square rounded-lg bg-primary-container/20"></div>
+<div class="aspect-square rounded-lg bg-error-container/60"></div>
+<div class="aspect-square rounded-lg bg-error-container/80"></div>
+<div class="aspect-square rounded-lg bg-primary-container/40"></div>
+<div class="aspect-square rounded-lg bg-primary-container/90"></div>
+<div class="aspect-square rounded-lg bg-primary-container"></div>
+<!-- Row 3 -->
+<div class="aspect-square rounded-lg bg-error-container/20"></div>
+<div class="aspect-square rounded-lg bg-primary-container/40"></div>
+<div class="aspect-square rounded-lg bg-primary-container"></div>
+<div class="aspect-square rounded-lg bg-primary-container/90"></div>
+<div class="aspect-square rounded-lg bg-error-container/40"></div>
+<div class="aspect-square rounded-lg bg-error-container/90"></div>
+<div class="aspect-square rounded-lg bg-primary-container/20"></div>
+<!-- Row 4 -->
+<div class="aspect-square rounded-lg bg-primary-container"></div>
+<div class="aspect-square rounded-lg bg-primary-container/80"></div>
+<div class="aspect-square rounded-lg bg-primary-container/60"></div>
+<div class="aspect-square rounded-lg bg-primary-container/40"></div>
+<div class="aspect-square rounded-lg bg-primary-container/20"></div>
+<div class="aspect-square rounded-lg bg-primary-container/10"></div>
+<div class="aspect-square rounded-lg bg-primary-container/10"></div>
+</div>
+<div class="mt-8 flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase">
+<span>Low Stress</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 rounded-sm bg-primary-container"></div>
+<div class="w-3 h-3 rounded-sm bg-primary-container/60"></div>
+<div class="w-3 h-3 rounded-sm bg-error-container/60"></div>
+<div class="w-3 h-3 rounded-sm bg-error-container"></div>
+</div>
+<span>High Stress</span>
+</div>
+</div>
+</div>
+<!-- Bottom Row: Peer Comparison -->
+<section class="liquid-glass rounded-3xl p-8">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+<div>
+<h3 class="font-headline font-bold text-xl text-on-surface">Peer Comparison</h3>
+<p class="text-sm text-on-surface-variant mt-1">Comparing your habits with the campus average</p>
+</div>
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<div class="w-8 h-2 rounded-full bg-primary"></div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">You</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-2 rounded-full bg-secondary-fixed-dim"></div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Campus Average</span>
+</div>
+</div>
+</div>
+<div class="space-y-10">
+<!-- Sleep Hours -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-sm font-bold text-on-surface">Sleep Hours</span>
+<span class="text-xs font-bold text-primary">6.2 vs 7.4 hrs</span>
+</div>
+<div class="h-4 w-full bg-surface-container-low rounded-full relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 bg-secondary-fixed-dim w-[74%] rounded-full"></div>
+<div class="absolute inset-y-0 left-0 bg-primary w-[62%] rounded-full shadow-[4px_0_12px_rgba(0,107,96,0.3)]"></div>
+</div>
+</div>
+<!-- Study Hours -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-sm font-bold text-on-surface">Study Hours</span>
+<span class="text-xs font-bold text-primary">9.5 vs 6.1 hrs</span>
+</div>
+<div class="h-4 w-full bg-surface-container-low rounded-full relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 bg-secondary-fixed-dim w-[61%] rounded-full"></div>
+<div class="absolute inset-y-0 left-0 bg-primary w-[95%] rounded-full shadow-[4px_0_12px_rgba(0,107,96,0.3)]"></div>
+</div>
+</div>
+<!-- Social Hours -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<span class="text-sm font-bold text-on-surface">Social Hours</span>
+<span class="text-xs font-bold text-primary">2.1 vs 4.8 hrs</span>
+</div>
+<div class="h-4 w-full bg-surface-container-low rounded-full relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 bg-secondary-fixed-dim w-[48%] rounded-full"></div>
+<div class="absolute inset-y-0 left-0 bg-primary w-[21%] rounded-full shadow-[4px_0_12px_rgba(0,107,96,0.3)]"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl flex justify-around items-center py-4 px-6 z-50 border-t border-slate-100">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-bold">dashboard</span>
+<span class="text-[10px] font-bold uppercase">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] font-bold uppercase">Trends</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-[10px] font-bold uppercase">Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase">Me</span>
+</a>
+</nav>
+</body></html>

@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -60,3 +61,35 @@
 .dark ::-webkit-scrollbar-thumb { background: rgba(71,85,105,0.5); }
 .dark ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.8); }
 
+/* ============================================
+   ANALYTICS DESIGN SYSTEM — Liquid Glass
+   Matching "The Ethereal Academic" design spec
+   ============================================ */
+
+.analytics-liquid-bg {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(226, 255, 248, 0.85) 0px, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(233, 221, 255, 0.75) 0px, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(255, 153, 202, 0.6) 0px, transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(91, 244, 222, 0.55) 0px, transparent 50%),
+    #f7f9fb;
+}
+
+.analytics-glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .analytics-liquid-bg {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(0, 107, 96, 0.25) 0px, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, rgba(110, 59, 216, 0.2) 0px, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(165, 49, 115, 0.2) 0px, transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(91, 244, 222, 0.15) 0px, transparent 50%),
+    #0b0f10;
+}
+
+.dark .analytics-glass-card {
+  background: rgba(15, 23, 42, 0.55);
+}
