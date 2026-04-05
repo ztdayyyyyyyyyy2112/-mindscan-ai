@@ -2322,7 +2322,7 @@ export default function App() {
                         </aside>
 
                         <div className="lg:col-span-9 flex flex-col gap-8">
-                          {activeDataModule === 'dashboard' ? (
+                          {activeDataModule === 'analytics' ? (
                             renderDashboardView()
                           ) : (
                           <><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -2454,11 +2454,6 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          </>
-                          )}
-                        </div>
-                      </div>
-                    </section>
 
                     {sessionHistory.length > 0 && (
                       <section className="mt-8 space-y-5">
@@ -2551,6 +2546,13 @@ export default function App() {
                         </div>
                       )}
                     </section>
+                           </>
+                           )}
+
+                        </div>
+                      </div>
+                    </section>
+
 
                     <div className="mt-12 pt-8 border-t border-gray-100/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
                       <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>{t('results.disclaimer')}</p>
