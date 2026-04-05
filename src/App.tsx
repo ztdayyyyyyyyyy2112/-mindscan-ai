@@ -1574,19 +1574,26 @@ export default function App() {
                 style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
                 Data Module
               </div>
-              <select
-                value={activeDataModule}
-                onChange={(e) => setActiveDataModule(e.target.value as 'dashboard' | 'analytics')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-teal-400/40 ${
-                  isDarkMode
-                    ? 'bg-slate-900/80 text-slate-200 border-white/10'
-                    : 'bg-white/80 text-slate-700 border-white/70'
-                }`}
-                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-              >
-                <option value="dashboard">Dashboard</option>
-                <option value="analytics">Analytics</option>
-              </select>
+              <div className="relative group">
+                <select
+                  value={activeDataModule}
+                  onChange={(e) => setActiveDataModule(e.target.value as 'dashboard' | 'analytics')}
+                  className={`appearance-none pl-4 pr-10 py-2 rounded-full text-sm font-semibold border backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400/40 ${
+                    isDarkMode
+                      ? 'bg-white/10 text-slate-100 border-white/15 hover:bg-white/15 shadow-[0_8px_24px_rgba(2,6,23,0.35),inset_0_1px_1px_rgba(255,255,255,0.12)]'
+                      : 'bg-white/55 text-slate-700 border-white/70 hover:bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]'
+                  }`}
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                >
+                  <option value="dashboard">Dashboard</option>
+                  <option value="analytics">Analytics</option>
+                </select>
+                <ChevronDown
+                  className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${
+                    isDarkMode ? 'text-slate-300 group-hover:text-slate-100' : 'text-slate-500 group-hover:text-slate-700'
+                  }`}
+                />
+              </div>
             </div>
           )}
 
@@ -1744,7 +1751,7 @@ export default function App() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
       </header>
 
       {/* Privacy Policy Modal */}
