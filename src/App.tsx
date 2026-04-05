@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowRight, 
   Play, 
@@ -32,8 +32,17 @@ import {
   Brain,
   Globe,
   Github,
-  Facebook
+  Facebook,
+  LayoutDashboard,
+  TrendingUp,
+  Calendar,
+  GitCompare
 } from 'lucide-react';
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Legend
+} from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { analyzeSurveyData, AIRecommendation } from './services/geminiService';
@@ -218,6 +227,10 @@ export default function App() {
   const [showAllRecs, setShowAllRecs] = useState(false);
   const [stepError, setStepError] = useState<string>('');
   const [earthRotation, setEarthRotation] = useState(0);
+  const [activeDataModule, setActiveDataModule] = useState<'dashboard' | 'analytics'>('analytics');
+  const [stressTrendPeriod, setStressTrendPeriod] = useState<'weekly' | 'monthly'>('weekly');
+  const [radarAnimated, setRadarAnimated] = useState(false);
+  const radarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -873,6 +886,512 @@ export default function App() {
           touchpoints: `Các yếu tố ảnh hưởng mạnh nhất: ${formatTop(2)}. Ưu tiên theo dõi ${primary}${secondary ? ` và ${secondary}` : ''}.`
         };
     }
+  };
+
+  // ─── Dashboard Chart Data ───────────────────────────────────────────────
+  const buildRadarData = () => {
+    // Normalize each dimension to 0–100
+    const study = Math.round(((Number(formData.academic_performance) + (5 - Number(formData.study_load))) / 10) * 100);
+    const sleep  = Math.round((Number(formData.sleep_quality) / 5) * 100);
+    const social = Math.round(((Number(formData.social_support) / 3 + Number(formData.extracurricular_activities) / 5) / 2) * 100);
+    const finance = Math.round(((Number(formData.basic_needs) + Number(formData.living_conditions)) / 10) * 100);
+    const exercise = Math.round(((Number(formData.extracurricular_activities) / 5 * 0.6) + ((5 - Number(formData.headache)) / 5 * 0.4)) * 100);
+    return [
+      { subject: 'Study', value: Math.min(100, Math.max(5, study)), fullMark: 100 },
+      { subject: 'Sleep', value: Math.min(100, Math.max(5, sleep)), fullMark: 100 },
+      { subject: 'Social', value: Math.min(100, Math.max(5, social)), fullMark: 100 },
+      { subject: 'Finance', value: Math.min(100, Math.max(5, finance)), fullMark: 100 },
+      { subject: 'Exercise', value: Math.min(100, Math.max(5, exercise)), fullMark: 100 },
+    ];
+  };
+
+  const buildStressTrendData = () => {
+    const weekly = [
+      { label: 'Mon', stress: 45, avg: 52 },
+      { label: 'Tue', stress: 62, avg: 55 },
+      { label: 'Wed', stress: 38, avg: 50 },
+      { label: 'Thu', stress: 71, avg: 58 },
+      { label: 'Fri', stress: 55, avg: 53 },
+      { label: 'Sat', stress: 30, avg: 42 },
+      { label: 'Sun', stress: 25, avg: 38 },
+    ];
+    const monthly = [
+      { label: 'W1', stress: 48, avg: 50 },
+      { label: 'W2', stress: 65, avg: 54 },
+      { label: 'W3', stress: 42, avg: 51 },
+      { label: 'W4', stress: 58, avg: 55 },
+    ];
+    // Blend with actual session data if available
+    if (sessionHistory.length > 0) {
+      const lastScore = sessionHistory[sessionHistory.length - 1]?.stressScore ?? 50;
+      if (stressTrendPeriod === 'weekly') {
+        weekly[weekly.length - 1].stress = lastScore;
+      } else {
+        monthly[monthly.length - 1].stress = lastScore;
+      }
+    }
+    return stressTrendPeriod === 'weekly' ? weekly : monthly;
+  };
+
+  const buildCalendarData = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=Sun
+    // Stress levels: 0=none, 1=low, 2=medium, 3=high
+    const stressPattern = [1,1,2,3,2,1,1, 2,3,3,2,1,1,2, 3,3,2,2,1,1,2, 2,2,1,1,1,2,3, 3,2,1];
+    const currentStress = aiResult?.stress_level === 'High' ? 3 : aiResult?.stress_level === 'Medium' ? 2 : 1;
+    stressPattern[now.getDate() - 1] = currentStress;
+    return { daysInMonth, firstDayOfWeek: firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1, stressPattern, month, year };
+  };
+
+  const buildPeerData = () => [
+    {
+      label: 'Sleep Hours',
+      you: Math.round((Number(formData.sleep_quality) / 5) * 10),
+      avg: 7,
+      unit: 'hrs',
+      youPct: Math.round((Number(formData.sleep_quality) / 5) * 100),
+      avgPct: 70,
+    },
+    {
+      label: 'Study Load',
+      you: Number(formData.study_load),
+      avg: 3,
+      unit: '/5',
+      youPct: Math.round((Number(formData.study_load) / 5) * 100),
+      avgPct: 60,
+    },
+    {
+      label: 'Social Activity',
+      you: Number(formData.social_support),
+      avg: 2,
+      unit: '/3',
+      youPct: Math.round((Number(formData.social_support) / 3) * 100),
+      avgPct: 65,
+    },
+    {
+      label: 'Exercise Score',
+      you: Number(formData.extracurricular_activities),
+      avg: 3,
+      unit: '/5',
+      youPct: Math.round((Number(formData.extracurricular_activities) / 5) * 100),
+      avgPct: 60,
+    },
+    {
+      label: 'Basic Needs',
+      you: Number(formData.basic_needs),
+      avg: 4,
+      unit: '/5',
+      youPct: Math.round((Number(formData.basic_needs) / 5) * 100),
+      avgPct: 80,
+    },
+  ];
+
+  // Custom Radar tooltip
+  const RadarTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const d = payload[0];
+      return (
+        <div className={`px-3 py-2 rounded-xl text-xs font-bold shadow-lg border ${
+          isDarkMode ? 'bg-slate-900 border-white/10 text-slate-100' : 'bg-white border-white/60 text-slate-800'
+        }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+          <div className="text-[10px] uppercase tracking-widest mb-1 text-slate-400">{d.payload?.subject}</div>
+          <div style={{ color: '#006b60' }}>{d.value}<span className="text-slate-400 font-normal">/100</span></div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const AreaTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className={`px-3 py-2 rounded-xl text-xs shadow-lg border ${
+          isDarkMode ? 'bg-slate-900 border-white/10 text-slate-100' : 'bg-white border-white/60 text-slate-800'
+        }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+          <div className="font-bold mb-1">{label}</div>
+          {payload.map((p: any, i: number) => (
+            <div key={i} style={{ color: p.color }} className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: p.color }} />
+              {p.name}: <span className="font-bold">{p.value}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderDashboardView = () => {
+    const radarData = buildRadarData();
+    const trendData = buildStressTrendData();
+    const calendar = buildCalendarData();
+    const peerData = buildPeerData();
+    const monthName = new Date(calendar.year, calendar.month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const stressColors = [
+      isDarkMode ? '#1e293b' : '#f1f4f6',   // 0 = no data
+      '#5bf4de',  // 1 = low
+      '#6e3bd8',  // 2 = medium
+      '#a53173',  // 3 = high
+    ];
+
+    return (
+      <div className="flex flex-col gap-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight`}
+              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif", color: isDarkMode ? '#f1f5f9' : '#0f172a' }}>
+              Cognitive Sanctuary
+            </h2>
+            <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+              Your mental wellbeing narrative, visualized through the lens of data.
+            </p>
+          </div>
+          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide shrink-0 ${
+            isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'
+          }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+            <Activity className="w-4 h-4" /> April 2026
+          </div>
+        </div>
+
+        {/* Row 1: Radar Chart + Summary Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Radar Chart */}
+          <div className={`lg:col-span-7 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Life Balance</h3>
+                <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Based on your survey responses</p>
+              </div>
+              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
+                isDarkMode ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-teal-100 text-teal-700 border border-teal-200'
+              }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
+            </div>
+            <div className="w-full" style={{ height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                  <defs>
+                    <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="#006b60" stopOpacity={0.45} />
+                      <stop offset="100%" stopColor="#5bf4de" stopOpacity={0.05} />
+                    </radialGradient>
+                  </defs>
+                  <PolarGrid
+                    stroke={isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}
+                    strokeDasharray="4 4"
+                  />
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12, fontWeight: 700, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                  />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fill: isDarkMode ? '#475569' : '#94a3b8', fontSize: 9 }}
+                    tickCount={4}
+                    stroke="transparent"
+                  />
+                  <Tooltip content={<RadarTooltip />} />
+                  <Radar
+                    name="You"
+                    dataKey="value"
+                    stroke="#006b60"
+                    strokeWidth={2.5}
+                    fill="url(#radarFill)"
+                    isAnimationActive={true}
+                    animationBegin={200}
+                    animationDuration={1200}
+                    animationEasing="ease-out"
+                    dot={{ fill: '#006b60', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-3 mt-2 justify-center">
+              {radarData.map(d => (
+                <div key={d.subject} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{
+                    backgroundColor: d.value >= 70 ? '#006b60' : d.value >= 40 ? '#6e3bd8' : '#a53173'
+                  }} />
+                  <span className={`text-xs font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                    {d.subject}: <span style={{ color: d.value >= 70 ? '#006b60' : d.value >= 40 ? '#6e3bd8' : '#a53173' }}>{d.value}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Stats Column */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {radarData.map((d, i) => {
+              const icons = [BookOpen, Moon, Users, DollarSign, Activity];
+              const Icon = icons[i];
+              const colors = ['#006b60', '#6e3bd8', '#a53173', '#48e5d0', '#f59e0b'];
+              const color = colors[i];
+              const level = d.value >= 70 ? 'Good' : d.value >= 40 ? 'Fair' : 'Needs Attention';
+              const levelColor = d.value >= 70 ? '#006b60' : d.value >= 40 ? '#6e3bd8' : '#a53173';
+              return (
+                <div key={d.subject} className={`analytics-glass-card rounded-2xl p-4 flex items-center gap-4 ${isDarkMode ? 'dark' : ''}`}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: color + '20', color }}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
+                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{d.subject}</span>
+                      <span className="text-xs font-bold" style={{ color: levelColor, fontFamily: "'Manrope', 'Inter', sans-serif" }}>{level}</span>
+                    </div>
+                    <div className={`h-2 rounded-full w-full overflow-hidden ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-100'}`}>
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${d.value}%`, background: `linear-gradient(90deg, ${color}, ${color}99)` }}
+                      />
+                    </div>
+                  </div>
+                  <span className={`text-sm font-black shrink-0 w-9 text-right ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
+                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{d.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Row 2: Area Chart + Calendar Heatmap */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Stress Trend Area Chart */}
+          <div className={`lg:col-span-8 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Trend</h3>
+                <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stress level over time vs. campus average</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStressTrendPeriod('weekly')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                    stressTrendPeriod === 'weekly'
+                      ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                      : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
+                  }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Weekly</button>
+                <button
+                  onClick={() => setStressTrendPeriod('monthly')}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                    stressTrendPeriod === 'monthly'
+                      ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                      : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
+                  }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Monthly</button>
+              </div>
+            </div>
+            <div style={{ height: 240 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
+                  <defs>
+                    <linearGradient id="stressGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#006b60" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#006b60" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6e3bd8" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#6e3bd8" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    stroke={isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 11, fontWeight: 700, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 10, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<AreaTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="avg"
+                    name="Campus Avg"
+                    stroke="#6e3bd8"
+                    strokeWidth={2}
+                    strokeDasharray="5 3"
+                    fill="url(#avgGrad)"
+                    dot={false}
+                    isAnimationActive={true}
+                    animationDuration={1200}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="stress"
+                    name="Your Stress"
+                    stroke="#006b60"
+                    strokeWidth={3}
+                    fill="url(#stressGrad)"
+                    strokeLinecap="round"
+                    dot={{ fill: '#006b60', r: 4, strokeWidth: 2.5, stroke: isDarkMode ? '#0f172a' : '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 0, fill: '#006b60' }}
+                    isAnimationActive={true}
+                    animationDuration={1400}
+                  />
+                  <Legend
+                    iconType="circle"
+                    iconSize={8}
+                    formatter={(value) => (
+                      <span style={{ color: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 11, fontFamily: "'Manrope', 'Inter', sans-serif", fontWeight: 700 }}>{value}</span>
+                    )}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Calendar Heatmap */}
+          <div className={`lg:col-span-4 analytics-glass-card rounded-[2rem] p-6 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+            <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Mood Calendar</h3>
+            <p className={`text-xs mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{monthName}</p>
+            {/* Day headers */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {dayLabels.map(d => (
+                <div key={d} className={`text-center text-[9px] font-bold uppercase tracking-wider ${
+                  isDarkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{d}</div>
+              ))}
+            </div>
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty cells for days before month starts */}
+              {Array.from({ length: calendar.firstDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+              {/* Day cells */}
+              {Array.from({ length: calendar.daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const stressLevel = calendar.stressPattern[i] ?? 0;
+                const bgColor = stressColors[stressLevel];
+                const today = new Date().getDate() === day && new Date().getMonth() === calendar.month;
+                return (
+                  <div
+                    key={`day-${day}`}
+                    className="aspect-square rounded-lg transition-transform hover:scale-110 relative flex items-center justify-center"
+                    style={{ backgroundColor: bgColor, cursor: 'default' }}
+                    title={`Day ${day}: ${
+                      stressLevel === 0 ? 'No data' :
+                      stressLevel === 1 ? 'Low stress' :
+                      stressLevel === 2 ? 'Medium stress' : 'High stress'
+                    }`}
+                  >
+                    {today && (
+                      <span className="absolute inset-0 rounded-lg ring-2 ring-offset-1 ring-white/80" />
+                    )}
+                    <span className={`text-[9px] font-black ${
+                      stressLevel >= 2 ? 'text-white/80' : (isDarkMode ? 'text-slate-400' : 'text-slate-500')
+                    }`}>{day}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Legend */}
+            <div className="mt-4 flex items-center justify-between">
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Low</span>
+              <div className="flex gap-1.5 items-center">
+                {stressColors.slice(1).map((c, i) => (
+                  <div key={i} className="w-4 h-4 rounded-sm" style={{ backgroundColor: c }} />
+                ))}
+              </div>
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>High</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 3: Peer Comparison Horizontal Bar Chart */}
+        <div className={`analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+              <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Peer Comparison</h3>
+              <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>How your habits compare to the campus average</p>
+            </div>
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-2.5 rounded-full" style={{ background: 'linear-gradient(90deg, #006b60, #48e5d0)' }} />
+                <span className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>You</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-2.5 rounded-full" style={{ backgroundColor: isDarkMode ? '#334155' : '#ddcdff' }} />
+                <span className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Campus Avg</span>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-7">
+            {peerData.map((item, idx) => (
+              <div key={idx} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
+                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                      item.youPct >= item.avgPct
+                        ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-50 text-teal-700')
+                        : (isDarkMode ? 'bg-purple-500/15 text-purple-300' : 'bg-purple-50 text-purple-700')
+                    }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                      You: {item.you}{item.unit}
+                    </span>
+                    <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>vs Avg: {item.avg}{item.unit}</span>
+                  </div>
+                </div>
+                {/* Avg bar (background) */}
+                <div className="relative h-5 w-full rounded-full overflow-hidden" style={{ background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}>
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${item.avgPct}%`, background: isDarkMode ? '#334155' : '#ddcdff' }}
+                  />
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-1200 ease-out"
+                    style={{
+                      width: `${item.youPct}%`,
+                      background: 'linear-gradient(90deg, #006b60, #48e5d0)',
+                      boxShadow: '4px 0 12px rgba(0,107,96,0.35)'
+                    }}
+                  />
+                  {/* Value label inside bar */}
+                  {item.youPct > 15 && (
+                    <span className="absolute inset-y-0 flex items-center text-[10px] font-black text-white/90 px-2"
+                      style={{ left: `${Math.min(item.youPct - 8, 85)}%`, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                      {item.youPct}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const insightCopy = aiResult ? buildInsightCopy(aiResult) : null;
@@ -1777,19 +2296,36 @@ export default function App() {
                           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400"
                             style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Data Module</div>
                           <div className="mt-5 space-y-1.5">
-                            <div className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-default ${isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-white/60'}`}
-                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                              <BarChart2 className="w-4 h-4" /> Dashboard
-                            </div>
-                            <div className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}
-                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                            <button
+                              onClick={() => setActiveDataModule('dashboard')}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                                activeDataModule === 'dashboard'
+                                  ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                                  : (isDarkMode ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200' : 'text-slate-500 hover:bg-white/60 hover:text-slate-700')
+                              }`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                            >
+                              <LayoutDashboard className="w-4 h-4" /> Dashboard
+                            </button>
+                            <button
+                              onClick={() => setActiveDataModule('analytics')}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                                activeDataModule === 'analytics'
+                                  ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                                  : (isDarkMode ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200' : 'text-slate-500 hover:bg-white/60 hover:text-slate-700')
+                              }`}
+                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                            >
                               <Brain className="w-4 h-4" /> Analytics
-                            </div>
+                            </button>
                           </div>
                         </aside>
 
                         <div className="lg:col-span-9 flex flex-col gap-8">
-                          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                          {activeDataModule === 'dashboard' ? (
+                            renderDashboardView()
+                          ) : (
+                          <><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                             <div>
                               <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
                                 style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Student Wellness Analysis and Action Plan</h2>
@@ -1897,27 +2433,128 @@ export default function App() {
                                   {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
                                 </p>
                               </div>
-                            </div>
-
-                            <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
-                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                                <CheckCircle2 className="w-6 h-6" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {(insightMeta?.topFeatures || []).map((item, idx) => (
-                                    <span key={`touch-${idx}`}
-                                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
-                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                      {item.feature} ({Math.round(item.importance)}%)
-                                    </span>
-                                  ))}
+                                  <Activity className="w-4 h-4" /> Last 30 Days
                                 </div>
                               </div>
-                            </div>
-                          </div>
+
+                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 flex-1">
+                                {/* Stress Load Card */}
+                                <div className={`lg:col-span-5 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+                                  <div className="flex items-start justify-between gap-3 mb-4">
+                                    <div>
+                                      <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Load</h3>
+                                      <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Real-time physiological proxy</p>
+                                    </div>
+                                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}
+                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
+                                  </div>
+                                  <div className="flex flex-col items-center justify-center py-2">
+                                    <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
+                                  </div>
+                                  <div className="mt-4 pt-4 grid grid-cols-3 gap-2" style={{ borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                                    <div className="text-center">
+                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Status</div>
+                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{insightMeta?.levelLabel || 'Medium'}</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Trend</div>
+                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stable</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Baseline</div>
+                                      <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.max(0, Math.round((insightMeta?.confidencePct ?? 0) * 0.8))}%</div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Impact Factors Card */}
+                                <div className={`lg:col-span-7 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
+                                  <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Impact Factors</h3>
+                                  <p className={`text-sm mb-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Primary drivers of current stress state</p>
+                                  <div className="w-full h-12 rounded-full overflow-hidden flex" style={{ background: isDarkMode ? '#1e293b' : '#eaeef1' }}>
+                                    {aiResult.feature_importance.map((item: any, idx: number) => {
+                                      const total = aiResult.feature_importance.reduce((s: number, f: any) => s + f.importance, 0);
+                                      const pct = total > 0 ? (item.importance / total) * 100 : 0;
+                                      const color = (!item.color || item.color === '#f3f4f6') ? ['#006b60','#6e3bd8','#a53173','#48e5d0'][idx % 4] : item.color;
+                                      return (
+                                        <div key={`bar-${idx}`} style={{ width: `${pct}%`, backgroundColor: color }}
+                                          className="h-full flex items-center justify-center text-[10px] text-white font-bold"
+                                          title={`${item.feature}: ${Math.round(item.importance)}%`}>
+                                          {pct > 8 ? Math.round(item.importance) : ''}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                                    {aiResult.feature_importance.slice(0, 4).map((item: any, idx: number) => {
+                                      const dotColors = ['#006b60','#6e3bd8','#a53173','#48e5d0'];
+                                      const dotColor = (!item.color || item.color === '#f3f4f6') ? dotColors[idx % 4] : item.color;
+                                      return (
+                                        <div key={`fi-${idx}`} className={`flex items-start gap-3 p-3 rounded-2xl ${isDarkMode ? 'bg-white/5' : 'bg-white/40'}`}>
+                                          <span className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: dotColor }} />
+                                          <div>
+                                            <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.feature}</div>
+                                            <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% Impact</div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Prominent Trends + Critical Touchpoints */}
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}>
+                                    <Activity className="w-6 h-6" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                      <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Prominent Trends</h4>
+                                      <Info className={`w-4 h-4 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-300'}`} />
+                                    </div>
+                                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                      {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                                    <CheckCircle2 className="w-6 h-6" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                      style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {(insightMeta?.topFeatures || []).map((item, idx) => (
+                                        <span key={`touch-${idx}`}
+                                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
+                                          style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                          {item.feature} ({Math.round(item.importance)}%)
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </section>
