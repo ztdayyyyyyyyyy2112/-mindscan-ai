@@ -227,7 +227,7 @@ export default function App() {
   const [showAllRecs, setShowAllRecs] = useState(false);
   const [stepError, setStepError] = useState<string>('');
   const [earthRotation, setEarthRotation] = useState(0);
-  const [activeDataModule, setActiveDataModule] = useState<'dashboard' | 'analytics'>('analytics');
+  const [activeDataModule, setActiveDataModule] = useState<'dashboard' | 'analytics'>('dashboard');
   const [stressTrendPeriod, setStressTrendPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [radarAnimated, setRadarAnimated] = useState(false);
   const radarRef = useRef<HTMLDivElement>(null);
@@ -622,7 +622,7 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-            className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-lg w-full text-center ${isDarkMode ? 'bg-[#0b132b]/80 border border-white/10' : 'bg-white/95 border border-gray-200'}`}
+            className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-lg w-full text-center ${isDarkMode ? 'bg-[#0b132b]/80 border-white/10' : 'bg-white/95 border border-gray-200'}`}
           >
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'}`}>
               <AlertTriangle className="w-10 h-10" />
@@ -1355,7 +1355,7 @@ export default function App() {
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                       item.youPct >= item.avgPct
-                        ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-50 text-teal-700')
+                        ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
                         : (isDarkMode ? 'bg-purple-500/15 text-purple-300' : 'bg-purple-50 text-purple-700')
                     }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
                       You: {item.you}{item.unit}
@@ -1558,7 +1558,7 @@ export default function App() {
             ? '' 
             : 'bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-full px-5 py-2'
         }`}>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 min-w-0">
             <div className={`text-xl font-bold tracking-tight cursor-pointer transition-colors duration-500 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`} onClick={() => {setIsSurveyOpen(false); setIsCompleted(false); setCurrentStep(1);}}>{t('appName')}</div>
             {!isSurveyOpen && (
               <nav className={`hidden md:flex items-center gap-6 text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-800'}`}>
@@ -1567,6 +1567,29 @@ export default function App() {
               </nav>
             )}
           </div>
+
+          {isSurveyOpen && isCompleted && aiResult && (
+            <div className="hidden lg:flex items-center gap-3 shrink-0 mx-6">
+              <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                Data Module
+              </div>
+              <select
+                value={activeDataModule}
+                onChange={(e) => setActiveDataModule(e.target.value as 'dashboard' | 'analytics')}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-teal-400/40 ${
+                  isDarkMode
+                    ? 'bg-slate-900/80 text-slate-200 border-white/10'
+                    : 'bg-white/80 text-slate-700 border-white/70'
+                }`}
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+              >
+                <option value="dashboard">Dashboard</option>
+                <option value="analytics">Analytics</option>
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-3">
             {!isSurveyOpen && (
               <>
@@ -1706,7 +1729,7 @@ export default function App() {
                     <button
                       key={lang.code}
                       onClick={() => setLanguage(lang.code as any)}
-                      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${language === lang.code ? (isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600') : (isDarkMode ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900')}`}
+                      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${language === lang.code ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700') : (isDarkMode ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900')}`}
                     >
                       <img 
                         src={`https://hatscripts.github.io/circle-flags/flags/${lang.flag}.svg`} 
@@ -1906,13 +1929,13 @@ export default function App() {
                       className="flex flex-wrap items-center justify-center gap-4 mb-12"
                     >
                       <button onClick={() => setIsSurveyOpen(true)}
-                        className="relative overflow-hidden group flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold bg-[#a3e635] text-black shadow-[0_8px_32px_rgba(163,230,53,0.35)] hover:-translate-y-1 transition-all duration-300"
+                        className="relative overflow-hidden group flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold bg-[#a3e635] text-black shadow-[0_8px_32px_rgba(163,230,53,0.35)] hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,1)] transition-all duration-300"
                       >
                         <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                         {t('hero.btnStart')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                       <button onClick={() => setIsHowItWorksOpen(true)}
-                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-md hover:-translate-y-1 transition-all duration-300"
+                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-slate-800 hover:bg-white/50 transition-all duration-300"
                       >
                         <Play className="w-4 h-4 fill-current" />
                         {t('hero.btnWatch')}
@@ -1983,7 +2006,7 @@ export default function App() {
 
                     {/* Headline */}
                     <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-                      className="font-extrabold tracking-tight leading-[1.1] text-slate-900 mb-8 whitespace-nowrap"
+                      className="font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900"
                       style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)' }}
                     >
                       {t('hero.title1')}<br/>
@@ -2008,12 +2031,12 @@ export default function App() {
                         className="relative overflow-hidden group flex items-center gap-2 px-8 py-3.5 rounded-full font-bold bg-[#1d70f5] text-white shadow-[0_4px_16px_rgba(29,112,245,0.4)] hover:shadow-[0_8px_24px_rgba(29,112,245,0.6)] transition-all duration-300"
                       >
                         <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                        {t('hero.btnStart')} <ArrowRight className="w-[18px] h-[18px] group-hover:translate-x-1 transition-transform" />
+                        {t('hero.btnStart')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                       <button onClick={() => setIsHowItWorksOpen(true)}
-                        className="flex items-center gap-2 px-6 py-3.5 rounded-full font-bold text-slate-800 hover:bg-white/50 transition-all duration-300"
+                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-slate-800 hover:bg-white/50 transition-all duration-300"
                       >
-                        <Play className="w-[18px] h-[18px] fill-current" />
+                        <Play className="w-4 h-4 fill-current" />
                         {t('hero.btnWatch')}
                       </button>
                     </motion.div>
@@ -2023,11 +2046,11 @@ export default function App() {
                       className="flex flex-wrap items-center gap-4"
                     >
                       <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/40 border border-white/60 backdrop-blur-xl shadow-sm text-slate-700">
-                        <ShieldCheck className="w-[16px] h-[16px] text-slate-700" />
+                        <ShieldCheck className="w-5 h-5 text-slate-700" />
                         <span className="text-xs font-bold uppercase tracking-wide" dangerouslySetInnerHTML={{ __html: t('hero.statsExpert') }} />
                       </div>
                       <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/40 border border-white/60 backdrop-blur-xl shadow-sm text-slate-700">
-                        <Lock className="w-[16px] h-[16px] text-slate-700" />
+                        <Lock className="w-5 h-5 text-slate-700" />
                         <span className="text-xs font-bold uppercase tracking-wide">{t('hero.statsAnon')}</span>
                       </div>
                     </motion.div>
@@ -2050,7 +2073,7 @@ export default function App() {
                   {/* Card 1 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${
                     isDarkMode 
-                      ? 'bg-gradient-to-br from-blue-950/60 to-slate-900/60 border-blue-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)]' 
+                      ? 'bg-gradient-to-br from-blue-950/60 to-slate-900/60 border-blue-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]' 
                       : 'bg-white/75 border-sky-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                   }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${
@@ -2067,7 +2090,7 @@ export default function App() {
                   {/* Card 2 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${
                     isDarkMode 
-                      ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900/60 border-emerald-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)]' 
+                      ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900/60 border-emerald-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]' 
                       : 'bg-white/75 border-green-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                   }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${
@@ -2084,7 +2107,7 @@ export default function App() {
                   {/* Card 3 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${
                     isDarkMode 
-                      ? 'bg-gradient-to-br from-purple-950/60 to-slate-900/60 border-purple-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)]' 
+                      ? 'bg-gradient-to-br from-purple-950/60 to-slate-900/60 border-purple-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]' 
                       : 'bg-white/75 border-purple-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                   }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${
@@ -2165,7 +2188,7 @@ export default function App() {
                          </div>
                          <div className="bg-gray-900 p-4 rounded-xl text-sm font-mono text-gray-300 border border-gray-800 flex items-center justify-between">
                             <span>{t('tech.modelAcc')}</span>
-                            <span className="bg-green-900/80 text-green-400 px-2 py-1 rounded font-bold border border-green-800">92.4%</span>
+                            <span className="bg-green-900/80 text-green-400 px-2 py-1 rounded text-sm border border-green-800">92.4%</span>
                          </div>
                       </div>
                     </div>
@@ -2292,36 +2315,7 @@ export default function App() {
                   <div className="text-left w-full max-w-[1320px] mx-auto analytics-liquid-bg rounded-[2.5rem] p-4 md:p-6">
                     <section className={`rounded-[2.75rem] p-6 md:p-8 xl:p-10 shadow-[0_24px_90px_rgba(45,51,55,0.06)] ${isDarkMode ? 'bg-slate-900/40 border border-white/10' : ''} lg:min-h-[640px]`}>
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-                        <aside className={`lg:col-span-3 analytics-glass-card rounded-[2rem] p-6 ${isDarkMode ? 'dark' : ''}`}>
-                          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400"
-                            style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Data Module</div>
-                          <div className="mt-5 space-y-1.5">
-                            <button
-                              onClick={() => setActiveDataModule('dashboard')}
-                              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                                activeDataModule === 'dashboard'
-                                  ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
-                                  : (isDarkMode ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200' : 'text-slate-500 hover:bg-white/60 hover:text-slate-700')
-                              }`}
-                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                            >
-                              <LayoutDashboard className="w-4 h-4" /> Dashboard
-                            </button>
-                            <button
-                              onClick={() => setActiveDataModule('analytics')}
-                              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                                activeDataModule === 'analytics'
-                                  ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
-                                  : (isDarkMode ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200' : 'text-slate-500 hover:bg-white/60 hover:text-slate-700')
-                              }`}
-                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                            >
-                              <Brain className="w-4 h-4" /> Analytics
-                            </button>
-                          </div>
-                        </aside>
-
-                        <div className="lg:col-span-9 flex flex-col gap-8">
+                        <div className="lg:col-span-12 flex flex-col gap-8">
                           {activeDataModule === 'analytics' ? (
                             renderDashboardView()
                           ) : (
@@ -2348,8 +2342,9 @@ export default function App() {
                                   <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
                                     style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Real-time physiological proxy</p>
                                 </div>
-                                <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}
-                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
+                                <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
+                                  isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
                               </div>
                               <div className="flex flex-col items-center justify-center py-2">
                                 <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
