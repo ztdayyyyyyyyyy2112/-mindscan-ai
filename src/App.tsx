@@ -63,7 +63,9 @@ const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confi
   const largeArc = arcProgress > 0.5 ? 1 : 0;
   const arcPath = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 
-  const levelDisplay = level === 'Low' ? 'Low' : level === 'Medium' ? 'Medium' : 'High';
+  const levelDisplay = t
+    ? (level === 'Low' ? t('results.low') : level === 'Medium' ? t('results.medium') : t('results.high'))
+    : (level === 'Low' ? 'Low' : level === 'Medium' ? 'Medium' : 'High');
   const levelColor = level === 'Low' ? '#006b60' : level === 'Medium' ? '#006b60' : '#a53173';
 
   return (
@@ -106,7 +108,7 @@ const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confi
         </div>
         <div className={`text-xs font-semibold mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
           style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-          {Math.round(confidence * 100)}% Confidence Interval
+          {Math.round(confidence * 100)}% {t ? t('ui.confidenceInterval') : 'Confidence Interval'}
         </div>
       </div>
     </div>
@@ -142,7 +144,7 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
 };
 
 
-const ActionCard = ({ title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, key?: string }) => {
+const ActionCard = ({ title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel, detailsLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, detailsLabel: string, key?: string }) => {
   return (
     <div className="analytics-glass-card dark:bg-slate-800/50 border border-white/50 dark:border-white/10 shadow-[0_8px_24px_rgba(45,51,55,0.06)] rounded-[2rem] overflow-hidden p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-2 group">
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${colorClass}`}
@@ -160,7 +162,7 @@ const ActionCard = ({ title, description, icon: Icon, colorClass, isBookmarked, 
       <div className="mt-6 flex items-center justify-between">
         <span className={`text-[10px] font-bold uppercase tracking-widest ${isBookmarked ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}
           style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-          Details
+          {detailsLabel}
         </span>
         <button
           onClick={onBookmark}
@@ -208,7 +210,8 @@ const LiquidButton = ({ children, onClick, variant = 'primary', className = "", 
 
 export default function App() {
   const [hasConsented, setHasConsented] = useState(false);
-  const [language, setLanguage] = useState<'vi' | 'en' | 'de' | 'zh'>('vi');
+  const [language, setLanguage] = useState<'vi' | 'en' | 'de' | 'zh' | 'fr'>('en');
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -231,6 +234,15 @@ export default function App() {
   const [stressTrendPeriod, setStressTrendPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [radarAnimated, setRadarAnimated] = useState(false);
   const radarRef = useRef<HTMLDivElement>(null);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
+
+  const languageOptions = [
+    { code: 'en', label: 'English', flag: 'gb' },
+    { code: 'fr', label: 'Français', flag: 'fr' },
+    { code: 'de', label: 'Deutsch', flag: 'de' },
+    { code: 'zh', label: '中文', flag: 'cn' },
+    { code: 'vi', label: 'Tiếng Việt', flag: 'vn' }
+  ] as const;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -242,13 +254,39 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
   // Translation helper
   const t = (key: string): string => {
     const keys = key.split('.');
     let result: any = translations[language];
     for (const k of keys) {
-      if (result && result[k]) result = result[k];
-      else return key;
+      if (result && Object.prototype.hasOwnProperty.call(result, k)) {
+        result = result[k];
+      } else {
+        let fallback: any = translations.en;
+        for (const fk of keys) {
+          if (fallback && Object.prototype.hasOwnProperty.call(fallback, fk)) {
+            fallback = fallback[fk];
+          } else {
+            return key;
+          }
+        }
+        return typeof fallback === 'string' ? fallback : key;
+      }
     }
     return typeof result === 'string' ? result : key;
   };
@@ -272,7 +310,7 @@ export default function App() {
     anxiety_level: 0,
     depression: 0,
     self_esteem: 15,
-    mental_health_history: 'Không',
+    mental_health_history: 'no',
     // Step 3: Physical
     blood_pressure: 2,
     sleep_quality: 3,
@@ -382,21 +420,11 @@ export default function App() {
     if (currentStep === 1) {
       const age = parseInt(formData.age as any);
       if (!formData.age || isNaN(age) || age < 10 || age > 100) {
-        setStepError(
-          language === 'vi' ? 'Vui lòng nhập tuổi hợp lệ (10–100).' :
-            language === 'de' ? 'Bitte geben Sie ein gültiges Alter ein (10–100).' :
-              language === 'zh' ? '请输入有效年龄（10–100岁）。' :
-                'Please enter a valid age (10–100).'
-        );
+        setStepError(t('survey.errors.invalidAge'));
         return;
       }
       if (!formData.gender) {
-        setStepError(
-          language === 'vi' ? 'Vui lòng chọn giới tính.' :
-            language === 'de' ? 'Bitte wählen Sie Ihr Geschlecht aus.' :
-              language === 'zh' ? '请选择您的性别。' :
-                'Please select your gender.'
-        );
+        setStepError(t('survey.errors.selectGender'));
         return;
       }
     }
@@ -494,18 +522,18 @@ export default function App() {
       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 ${isDarkMode ? 'bg-gradient-to-br from-blue-900/50 to-teal-900/50 text-blue-400 border-white/10' : 'bg-gradient-to-br from-blue-100 to-teal-100 text-blue-600 border-white'}`}>
         <ShieldCheck className="w-8 h-8" />
       </div>
-      <h2 className={`text-3xl font-extrabold mb-6 tracking-tight relative z-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Informed Consent & Quyền riêng tư</h2>
+      <h2 className={`text-3xl font-extrabold mb-6 tracking-tight relative z-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.title')}</h2>
 
       <div className={`space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
-        <p>Chào mừng bạn đến với MindScan AI. Trước khi bắt đầu, vui lòng đọc kỹ các điều khoản sau:</p>
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>1. Mục đích khảo sát</h3>
-        <p>Khảo sát này nhằm mục đích thu thập thông tin về thói quen sinh hoạt, học tập và mức độ căng thẳng của sinh viên để hệ thống AI có thể đưa ra các gợi ý cải thiện sức khỏe tâm thần cá nhân hóa.</p>
+        <p>{t('consent.welcome')}</p>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h1')}</h3>
+        <p>{t('consent.p1')}</p>
 
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>2. Bảo mật & Ẩn danh</h3>
-        <p>Tất cả dữ liệu của bạn được thu thập hoàn toàn <strong>ẩn danh</strong>. Chúng tôi không yêu cầu tên, email hay Mã số sinh viên (MSSV). Dữ liệu chỉ được sử dụng cho mục đích phân tích cá nhân của bạn trong phiên làm việc này.</p>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h2')}</h3>
+        <p>{t('consent.p2')}</p>
 
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>3. Giới hạn của AI</h3>
-        <p>MindScan AI là một công cụ sàng lọc sơ bộ dựa trên mô hình học máy. <strong>Kết quả từ hệ thống không thay thế cho chẩn đoán y khoa hoặc lời khuyên từ chuyên gia tâm lý/bác sĩ.</strong></p>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h3')}</h3>
+        <p>{t('consent.p3')}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-end relative z-10">
@@ -513,12 +541,12 @@ export default function App() {
           variant="secondary"
           onClick={() => setIsSurveyOpen(false)}
         >
-          Từ chối & Quay lại
+          {t('consent.btnDecline')}
         </LiquidButton>
         <LiquidButton
           onClick={acceptConsent}
         >
-          Tôi đồng ý & Bắt đầu
+          {t('consent.btnAccept')}
         </LiquidButton>
       </div>
     </motion.div>
@@ -598,7 +626,7 @@ export default function App() {
                   <div className="flex gap-4 pl-4"><span className="text-indigo-300">max_depth</span><span className="text-gray-400">=</span><span className="text-orange-300">6</span><span className="text-gray-400">,</span></div>
                   <div className="flex gap-4 pl-4"><span className="text-indigo-300">objective</span><span className="text-gray-400">=</span><span className="text-green-300">'multi:softprob'</span></div>
                   <div className="flex gap-4"><span className="text-gray-400">)</span></div>
-                  <div className="flex gap-4 mt-6"><span className="text-gray-500 italic">/* Đầu ra dự báo: LOW, MEDIUM, HIGH */</span></div>
+                  <div className="flex gap-4 mt-6"><span className="text-gray-500 italic">/* {t('ui.predictionOutput')}: LOW, MEDIUM, HIGH */</span></div>
                 </div>
 
                 {/* Footer Stats */}
@@ -693,9 +721,9 @@ export default function App() {
                 <label className={questionLabelClass}>{t('questions.q2')}</label>
                 <div className="flex flex-wrap gap-3">
                   {[
-                    { val: 'Nam', label: t('questions.genderMale') },
-                    { val: 'Nữ', label: t('questions.genderFemale') },
-                    { val: 'Khác', label: t('questions.genderOther') }
+                    { val: 'male', label: t('questions.genderMale') },
+                    { val: 'female', label: t('questions.genderFemale') },
+                    { val: 'other', label: t('questions.genderOther') }
                   ].map(gender => (
                     <button key={gender.val} onClick={() => handleInputChange('gender', gender.val)} className={choiceButtonClass(formData.gender === gender.val)}>{gender.label}</button>
                   ))}
@@ -748,8 +776,8 @@ export default function App() {
                 <label className={questionLabelClass}>{t('questions.q10')}</label>
                 <div className="flex gap-4">
                   {[
-                    { val: 'Có', label: t('questions.yes') },
-                    { val: 'Không', label: t('questions.no') }
+                    { val: 'yes', label: t('questions.yes') },
+                    { val: 'no', label: t('questions.no') }
                   ].map(opt => (
                     <button key={opt.val} onClick={() => handleInputChange('mental_health_history', opt.val)} className={choiceButtonClass(formData.mental_health_history === opt.val)}>{opt.label}</button>
                   ))}
@@ -868,6 +896,11 @@ export default function App() {
         return {
           trends: `Current stress level: ${levelLabel} (confidence ${confidencePct}%). Top trends: ${formatTop(3)}.`,
           touchpoints: `Strongest drivers: ${formatTop(2)}. Prioritize ${primary}${secondary ? ` and ${secondary}` : ''}.`
+        };
+      case 'fr':
+        return {
+          trends: `Niveau de stress actuel: ${levelLabel} (confiance ${confidencePct}%). Tendances principales: ${formatTop(3)}.`,
+          touchpoints: `Facteurs les plus influents: ${formatTop(2)}. Priorisez ${primary}${secondary ? ` et ${secondary}` : ''}.`
         };
       case 'de':
         return {
@@ -1026,8 +1059,9 @@ export default function App() {
     const trendData = buildStressTrendData();
     const calendar = buildCalendarData();
     const peerData = buildPeerData();
-    const monthName = new Date(calendar.year, calendar.month).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const localeMap = { vi: 'vi-VN', en: 'en-US', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN' } as const;
+    const monthName = new Date(calendar.year, calendar.month).toLocaleString(localeMap[language], { month: 'long', year: 'numeric' });
+    const dayLabels = [t('ui.calendar.mon'), t('ui.calendar.tue'), t('ui.calendar.wed'), t('ui.calendar.thu'), t('ui.calendar.fri'), t('ui.calendar.sat'), t('ui.calendar.sun')];
     const stressColors = [
       isDarkMode ? '#1e293b' : '#f1f4f6',   // 0 = no data
       '#5bf4de',  // 1 = low
@@ -1042,16 +1076,16 @@ export default function App() {
           <div>
             <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight`}
               style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif", color: isDarkMode ? '#f1f5f9' : '#0f172a' }}>
-              Cognitive Sanctuary
+              {t('ui.dashboard.title')}
             </h2>
             <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
               style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Your mental wellbeing narrative, visualized through the lens of data.
+              {t('ui.dashboard.subtitle')}
             </p>
           </div>
           <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide shrink-0 ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'
             }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-            <Activity className="w-4 h-4" /> April 2026
+            <Activity className="w-4 h-4" /> {t('ui.dashboard.period')}
           </div>
         </div>
 
@@ -1062,12 +1096,12 @@ export default function App() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Life Balance</h3>
+                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.dashboard.lifeBalance')}</h3>
                 <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Based on your survey responses</p>
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.dashboard.lifeBalanceDesc')}</p>
               </div>
               <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-teal-100 text-teal-700 border border-teal-200'
-                }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
+                }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.live')}</span>
             </div>
             <div className="w-full" style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -1132,7 +1166,7 @@ export default function App() {
               const Icon = icons[i];
               const colors = ['#006b60', '#6e3bd8', '#a53173', '#48e5d0', '#f59e0b'];
               const color = colors[i];
-              const level = d.value >= 70 ? 'Good' : d.value >= 40 ? 'Fair' : 'Needs Attention';
+              const level = d.value >= 70 ? t('ui.status.good') : d.value >= 40 ? t('ui.status.fair') : t('ui.status.needsAttention');
               const levelColor = d.value >= 70 ? '#006b60' : d.value >= 40 ? '#6e3bd8' : '#a53173';
               return (
                 <div key={d.subject} className={`analytics-glass-card rounded-2xl p-4 flex items-center gap-4 ${isDarkMode ? 'dark' : ''}`}>
@@ -1168,9 +1202,9 @@ export default function App() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Trend</h3>
+                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.dashboard.stressTrend')}</h3>
                 <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stress level over time vs. campus average</p>
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.dashboard.stressTrendDesc')}</p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -1178,13 +1212,13 @@ export default function App() {
                   className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${stressTrendPeriod === 'weekly'
                       ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
                       : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
-                    }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Weekly</button>
+                    }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.weekly')}</button>
                 <button
                   onClick={() => setStressTrendPeriod('monthly')}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${stressTrendPeriod === 'monthly'
                       ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
                       : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
-                    }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Monthly</button>
+                    }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.monthly')}</button>
               </div>
             </div>
             <div style={{ height: 240 }}>
@@ -1221,7 +1255,7 @@ export default function App() {
                   <Area
                     type="monotone"
                     dataKey="avg"
-                    name="Campus Avg"
+                    name={t('ui.campusAvg')}
                     stroke="#6e3bd8"
                     strokeWidth={2}
                     strokeDasharray="5 3"
@@ -1233,7 +1267,7 @@ export default function App() {
                   <Area
                     type="monotone"
                     dataKey="stress"
-                    name="Your Stress"
+                    name={t('ui.yourStress')}
                     stroke="#006b60"
                     strokeWidth={3}
                     fill="url(#stressGrad)"
@@ -1258,7 +1292,7 @@ export default function App() {
           {/* Calendar Heatmap */}
           <div className={`lg:col-span-4 analytics-glass-card rounded-[2rem] p-6 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
             <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Mood Calendar</h3>
+              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.dashboard.moodCalendar')}</h3>
             <p className={`text-xs mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
               style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{monthName}</p>
             {/* Day headers */}
@@ -1285,9 +1319,9 @@ export default function App() {
                     key={`day-${day}`}
                     className="aspect-square rounded-lg transition-transform hover:scale-110 relative flex items-center justify-center"
                     style={{ backgroundColor: bgColor, cursor: 'default' }}
-                    title={`Day ${day}: ${stressLevel === 0 ? 'No data' :
-                        stressLevel === 1 ? 'Low stress' :
-                          stressLevel === 2 ? 'Medium stress' : 'High stress'
+                      title={`${t('ui.day')} ${day}: ${stressLevel === 0 ? t('ui.noData') :
+                        stressLevel === 1 ? t('ui.lowStress') :
+                          stressLevel === 2 ? t('ui.mediumStress') : t('ui.highStress')
                       }`}
                   >
                     {today && (
@@ -1302,14 +1336,14 @@ export default function App() {
             {/* Legend */}
             <div className="mt-4 flex items-center justify-between">
               <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Low</span>
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('results.low')}</span>
               <div className="flex gap-1.5 items-center">
                 {stressColors.slice(1).map((c, i) => (
                   <div key={i} className="w-4 h-4 rounded-sm" style={{ backgroundColor: c }} />
                 ))}
               </div>
               <span className={`text-[9px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>High</span>
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('results.high')}</span>
             </div>
           </div>
         </div>
@@ -1319,20 +1353,20 @@ export default function App() {
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Peer Comparison</h3>
+                style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.dashboard.peerComparison')}</h3>
               <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>How your habits compare to the campus average</p>
+                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.dashboard.peerComparisonDesc')}</p>
             </div>
             <div className="flex gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-2.5 rounded-full" style={{ background: 'linear-gradient(90deg, #006b60, #48e5d0)' }} />
                 <span className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>You</span>
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.you')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-2.5 rounded-full" style={{ backgroundColor: isDarkMode ? '#334155' : '#ddcdff' }} />
                 <span className={`text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Campus Avg</span>
+                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.campusAvg')}</span>
               </div>
             </div>
           </div>
@@ -1559,7 +1593,7 @@ export default function App() {
               <div className="hidden lg:flex items-center gap-3 shrink-0 mx-6">
                 <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
                   style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                  Data Module
+                  {t('ui.dataModule')}
                 </div>
                 <div className="relative group">
                   <select
@@ -1571,8 +1605,8 @@ export default function App() {
                       }`}
                     style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
                   >
-                    <option value="dashboard">Dashboard</option>
-                    <option value="analytics">Analytics</option>
+                    <option value="dashboard">{t('ui.module.dashboard')}</option>
+                    <option value="analytics">{t('ui.module.analytics')}</option>
                   </select>
                   <ChevronDown
                     className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-slate-100' : 'text-slate-500 group-hover:text-slate-700'
@@ -1591,7 +1625,7 @@ export default function App() {
                     animate={{ backgroundColor: isDarkMode ? '#0f172a' : '#236fe9' }}
                     transition={{ duration: 0.5 }}
                     onClick={() => setIsDarkMode(prev => !prev)}
-                    aria-label="Toggle dark mode"
+                    aria-label={t('ui.toggleDarkMode')}
                   >
                     {/* Stars Lottie (dark mode) */}
                     <motion.div
@@ -1691,34 +1725,37 @@ export default function App() {
                 </>
               )}
               {/* Language switcher */}
-              <div className="relative group z-50">
-                <div className={`flex items-center rounded-full p-1 pr-3 cursor-pointer transition-colors border ${isDarkMode
+              <div className="relative z-50" ref={languageMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsLanguageMenuOpen(prev => !prev)}
+                  aria-label={t('ui.languageSwitcher')}
+                  className={`flex items-center rounded-full p-1 pr-3 cursor-pointer transition-colors border ${isDarkMode
                     ? 'bg-black/90 hover:bg-black border-white/10 shadow-lg shadow-black/20'
                     : 'bg-white/60 hover:bg-white/90 border-white/60 shadow-sm'
-                  }`}>
+                  }`}
+                >
                   <img
-                    src={`https://hatscripts.github.io/circle-flags/flags/${language === 'vi' ? 'vn' : language === 'en' ? 'gb' : language === 'de' ? 'de' : 'cn'}.svg`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${language === 'en' ? 'gb' : language === 'fr' ? 'fr' : language === 'de' ? 'de' : language === 'zh' ? 'cn' : 'vn'}.svg`}
                     alt="flag"
                     className="w-6 h-6 rounded-full object-cover mr-2 shadow-sm"
                   />
                   <span className={`text-[13px] font-bold tracking-wider select-none pointer-events-none ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>
-                    {language === 'vi' ? 'VI' : language === 'en' ? 'EN' : language === 'de' ? 'DE' : 'ZH'}
+                    {language === 'en' ? 'EN' : language === 'fr' ? 'FR' : language === 'de' ? 'DE' : language === 'zh' ? 'ZH' : 'VI'}
                   </span>
-                  <ChevronDown className={`w-3.5 h-3.5 ml-1 ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`} />
-                </div>
+                  <ChevronDown className={`w-3.5 h-3.5 ml-1 transition-transform ${isLanguageMenuOpen ? 'rotate-180' : ''} ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`} />
+                </button>
 
                 {/* Dropdown Menu */}
-                <div className="absolute top-full right-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-[-10px] group-hover:translate-y-0">
+                <div className={`absolute top-full right-0 mt-2 w-48 transition-all duration-200 ${isLanguageMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
                   <div className={`py-2 rounded-2xl border shadow-xl backdrop-blur-xl ${isDarkMode ? 'bg-[#0f172a]/95 border-white/10 shadow-black/50' : 'bg-white/95 border-gray-200 shadow-xl'}`}>
-                    {[
-                      { code: 'vi', label: 'Tiếng Việt', flag: 'vn' },
-                      { code: 'en', label: 'English', flag: 'gb' },
-                      { code: 'de', label: 'Deutsch', flag: 'de' },
-                      { code: 'zh', label: '中文', flag: 'cn' }
-                    ].map((lang) => (
+                    {languageOptions.map((lang) => (
                       <button
                         key={lang.code}
-                        onClick={() => setLanguage(lang.code as any)}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setIsLanguageMenuOpen(false);
+                        }}
                         className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${language === lang.code ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700') : (isDarkMode ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900')}`}
                       >
                         <img
@@ -1750,34 +1787,34 @@ export default function App() {
                 <div className="w-12 h-12 bg-blue-500/20 border border-blue-300/40 rounded-2xl flex items-center justify-center text-blue-600">
                   <Lock className="w-6 h-6" />
                 </div>
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>Chính sách Bảo mật</h2>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('legal.privacy.title')}</h2>
               </div>
               <div className={`space-y-5 text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Nguyên tắc Ẩn danh (Anonymization)</h3>
-                  <p>Hệ thống tuyệt đối không thu thập các thông tin định danh cá nhân (PII) như Họ tên, MSSV, Email, Số điện thoại hoặc địa chỉ IP.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />{t('legal.privacy.a1h')}</h3>
+                  <p>{t('legal.privacy.a1p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Mã hóa Dữ liệu</h3>
-                  <p>Mọi phản hồi từ người dùng đều được mã hóa trước khi lưu trữ vào cơ sở dữ liệu. Các phiên làm việc (Session ID) được tạo ngẫu nhiên và không liên kết với thông tin thực tế của bạn.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />{t('legal.privacy.a2h')}</h3>
+                  <p>{t('legal.privacy.a2p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Bảo mật Kỹ thuật</h3>
-                  <p>Toàn bộ giao tiếp giữa thiết bị của bạn và máy chủ được bảo vệ qua giao thức HTTPS. Quyền truy cập quản trị được kiểm soát nghiêm ngặt bằng mã xác thực (JWT).</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />{t('legal.privacy.a3h')}</h3>
+                  <p>{t('legal.privacy.a3p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Giới hạn Lưu trữ</h3>
-                  <p>Dữ liệu chỉ phục vụ cho mục đích nghiên cứu học thuật của môn học <strong>MSIS3033</strong>. Toàn bộ dữ liệu sẽ được xóa sạch trong vòng <strong>3 tháng</strong> sau khi dự án kết thúc.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />{t('legal.privacy.a4h')}</h3>
+                  <p>{t('legal.privacy.a4p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Báo cáo Tổng hợp</h3>
-                  <p>Các kết quả thống kê chỉ hiển thị dưới dạng dữ liệu gộp (như tỷ lệ theo giới tính, năm học), đảm bảo không một cá nhân nào có thể bị nhận diện từ báo cáo.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />{t('legal.privacy.a5h')}</h3>
+                  <p>{t('legal.privacy.a5p')}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowPrivacyModal(false)}
                 className={`mt-8 w-full py-3 rounded-full font-semibold transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20' : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200'}`}              >
-                Đóng
+                {t('legal.close')}
               </button>
             </motion.div>
           </div>
@@ -1797,35 +1834,35 @@ export default function App() {
                 <div className="w-12 h-12 bg-green-500/20 border border-green-300/40 rounded-2xl flex items-center justify-center text-green-600">
                   <HeartHandshake className="w-6 h-6" />
                 </div>
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>Đạo đức Nghiên cứu</h2>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('legal.ethics.title')}</h2>
               </div>
               <div className={`space-y-5 text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Tính Tự nguyện</h3>
-                  <p>Việc tham gia khảo sát là hoàn toàn tự nguyện. Bạn có quyền dừng lại và thoát khỏi hệ thống bất cứ lúc nào mà không cần giải thích.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{t('legal.ethics.a1h')}</h3>
+                  <p>{t('legal.ethics.a1p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Giới hạn Chẩn đoán (Disclaimer)</h3>
-                  <p>MindScan AI là công cụ sàng lọc sơ bộ, không phải là chẩn đoán y tế hoặc lâm sàng. Kết quả này <strong>không thay thế</strong> cho lời khuyên hoặc điều trị từ các chuyên gia sức khỏe tâm thần.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{t('legal.ethics.a2h')}</h3>
+                  <p>{t('legal.ethics.a2p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />An toàn Người dùng là Trên hết</h3>
-                  <p>Trong trường hợp hệ thống phát hiện mức độ stress cao (High Stress), chúng tôi bắt buộc hiển thị thông tin hỗ trợ khẩn cấp và Hotline tư vấn 24/7 <strong>(1800 599 920)</strong>.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{t('legal.ethics.a3h')}</h3>
+                  <p>{t('legal.ethics.a3p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Sử dụng Ngôn ngữ</h3>
-                  <p>Hệ thống cam kết sử dụng ngôn ngữ trung lập, không gây thêm áp lực tâm lý hoặc tạo sự kỳ thị (stigma) đối với người tham gia.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{t('legal.ethics.a4h')}</h3>
+                  <p>{t('legal.ethics.a4p')}</p>
                 </div>
                 <div>
-                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Công khai Hạn chế</h3>
-                  <p>Chúng tôi thừa nhận các hạn chế về mặt dữ liệu (như thiên kiến tự đánh giá) để đảm bảo tính trung thực và khách quan của kết quả nghiên cứu.</p>
+                  <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{t('legal.ethics.a5h')}</h3>
+                  <p>{t('legal.ethics.a5p')}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowEthicsModal(false)}
                 className={`mt-8 w-full py-3 rounded-full font-semibold transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20' : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200'}`}
               >
-                Đóng
+                {t('legal.close')}
               </button>
             </motion.div>
           </div>
@@ -2168,7 +2205,7 @@ export default function App() {
                           &nbsp;&nbsp;max_depth=<span className="text-orange-400">6</span>,<br />
                           &nbsp;&nbsp;objective=<span className="text-green-400">'multi:softprob'</span><br />
                           )<br />
-                          <span className="block mt-4 text-gray-500 italic">/* {language === 'vi' ? 'Đầu ra dự báo' : language === 'zh' ? '预测输出' : language === 'de' ? 'Vorhersageausgabe' : 'Prediction output'}: LOW, MEDIUM, HIGH */</span>
+                          <span className="block mt-4 text-gray-500 italic">/* {t('ui.predictionOutput')}: LOW, MEDIUM, HIGH */</span>
                         </div>
                         <div className="bg-gray-900 p-4 rounded-xl text-sm font-mono text-gray-300 border border-gray-800 flex items-center justify-between">
                           <span>{t('tech.modelAcc')}</span>
@@ -2305,13 +2342,13 @@ export default function App() {
                             <><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                               <div>
                                 <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
-                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Student Wellness Analysis and Action Plan</h2>
+                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.resultsPanel.title')}</h2>
                                 <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>An editorial view of your cognitive load and recovery vectors.</p>
+                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.resultsPanel.subtitle')}</p>
                               </div>
                               <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}
                                 style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                <Activity className="w-4 h-4" /> Last 30 Days
+                                <Activity className="w-4 h-4" /> {t('ui.resultsPanel.last30Days')}
                               </div>
                             </div>
 
@@ -2321,12 +2358,12 @@ export default function App() {
                                   <div className="flex items-start justify-between gap-3 mb-4">
                                     <div>
                                       <h3 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Stress Load</h3>
+                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.resultsPanel.stressLoad')}</h3>
                                       <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Real-time physiological proxy</p>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.resultsPanel.stressLoadDesc')}</p>
                                     </div>
                                     <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'
-                                      }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>LIVE</span>
+                                      }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.live')}</span>
                                   </div>
                                   <div className="flex flex-col items-center justify-center py-2">
                                     <GaugeChart level={aiResult.stress_level} confidence={aiResult.confidence_score} t={t} isDarkMode={isDarkMode} />
@@ -2334,19 +2371,19 @@ export default function App() {
                                   <div className="mt-4 pt-4 grid grid-cols-3 gap-2" style={{ borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
                                     <div className="text-center">
                                       <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Status</div>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.status.title')}</div>
                                       <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{insightMeta?.levelLabel || 'Medium'}</div>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{insightMeta?.levelLabel || t('results.medium')}</div>
                                     </div>
                                     <div className="text-center">
                                       <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Trend</div>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.trend')}</div>
                                       <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Stable</div>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.stable')}</div>
                                     </div>
                                     <div className="text-center">
                                       <div className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Baseline</div>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.baseline')}</div>
                                       <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                         style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.max(0, Math.round((insightMeta?.confidencePct ?? 0) * 0.8))}%</div>
                                     </div>
@@ -2356,9 +2393,9 @@ export default function App() {
                                 {/* Impact Factors Card */}
                                 <div className={`lg:col-span-7 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
                                   <h3 className={`text-xl font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
-                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Impact Factors</h3>
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.impactFactors')}</h3>
                                   <p className={`text-sm mb-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Primary drivers of current stress state</p>
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.impactFactorsDesc')}</p>
                                   <div className="w-full h-12 rounded-full overflow-hidden flex" style={{ background: isDarkMode ? '#1e293b' : '#eaeef1' }}>
                                     {aiResult.feature_importance.map((item: any, idx: number) => {
                                       const total = aiResult.feature_importance.reduce((s: number, f: any) => s + f.importance, 0);
@@ -2384,7 +2421,7 @@ export default function App() {
                                             <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                               style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.feature}</div>
                                             <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% Impact</div>
+                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% {t('ui.impact')}</div>
                                           </div>
                                         </div>
                                       );
@@ -2402,12 +2439,12 @@ export default function App() {
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                       <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Prominent Trends</h4>
+                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.prominentTrends')}</h4>
                                       <Info className={`w-4 h-4 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-300'}`} />
                                     </div>
                                     <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
                                       style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                      {insightCopy?.trends || 'Stress patterns tracked from your assessment data.'}
+                                      {insightCopy?.trends || t('ui.prominentTrendsFallback')}
                                     </p>
                                   </div>
                                 </div>
@@ -2418,7 +2455,7 @@ export default function App() {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                      style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Critical Touchpoints</h4>
+                                      style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.criticalTouchpoints')}</h4>
                                     <div className="flex flex-wrap gap-2">
                                       {(insightMeta?.topFeatures || []).map((item, idx) => (
                                         <span key={`touch-${idx}`}
@@ -2437,12 +2474,12 @@ export default function App() {
                                   <div className="flex items-end justify-between gap-4">
                                     <div>
                                       <h3 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-900'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Anonymous History</h3>
+                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('results.historyTitle')}</h3>
                                       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Aggregated stress distribution over time</p>
+                                        style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.anonymousHistoryDesc')}</p>
                                     </div>
                                     <button className={`${isDarkMode ? 'text-teal-300' : 'text-teal-700'} text-sm font-semibold flex items-center gap-1 hover:underline`}
-                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>View Full Log <ArrowRight className="w-3.5 h-3.5" /></button>
+                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.viewFullLog')} <ArrowRight className="w-3.5 h-3.5" /></button>
                                   </div>
                                   <div className={`p-5 rounded-[2rem] border ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/25 backdrop-blur-3xl border-white/40'}`}>
                                     <div className="space-y-3">
@@ -2478,9 +2515,9 @@ export default function App() {
                               <section className="mt-10 mb-12 space-y-5">
                                 <div>
                                   <h3 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-gray-200' : 'text-slate-900'}`}
-                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>Recommended Actions</h3>
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.recommendedActions')}</h3>
                                   <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>Curated interventions based on your unique stress vectors.</p>
+                                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.recommendedActionsDesc')}</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                                   {(showAllRecs ? actionCards : actionCards.slice(0, 4)).map((rec) => {
@@ -2503,6 +2540,7 @@ export default function App() {
                                         icon={Icon}
                                         colorClass={colorClass}
                                         isBookmarked={bookmarkedRecs.includes(rec.id)}
+                                        detailsLabel={t('ui.details')}
                                         bookmarkAriaLabel={t('results.saveRec')}
                                         onBookmark={(e) => {
                                           e.stopPropagation();
@@ -2518,7 +2556,7 @@ export default function App() {
                                       onClick={() => setShowAllRecs(prev => !prev)}
                                       className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} font-medium text-sm underline underline-offset-4`}
                                     >
-                                      {showAllRecs ? 'Show less' : `Show ${actionCards.length - 4} more`}
+                                      {showAllRecs ? t('ui.showLess') : tWith('ui.showMore', { count: actionCards.length - 4 })}
                                     </button>
                                   </div>
                                 )}
