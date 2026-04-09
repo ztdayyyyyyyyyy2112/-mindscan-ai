@@ -12,19 +12,23 @@ from backend.database import engine, Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Load ML models or connect to DB here if needed
     print("Backend started")
     from backend.services.ml_service import get_model_and_scaler
-    # Attempt to preload ML models at startup to catch errors early
     get_model_and_scaler()
     
-    # Create DB tables if they don't exist
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        print("Database tables ensured.")
-        
+    # Database schema management
+    # Production: run `alembic upgrade head` before starting the server
+    # Development fallback: create tables if they don't exist
+    # NOTE: create_all() only creates NEW tables, it cannot ALTER existing ones.
+    #       For schema changes (adding columns etc.), use Alembic migrations:
+    #       alembic revision --autogenerate -m "description"
+    #       alembic upgrade head
+    if os.getenv("MINDSCAN_AUTO_CREATE_TABLES", "true").lower() == "true":
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            print("Database tables ensured (dev mode). Use Alembic for production.")
+    
     yield
-    # Shutdown: Clean up resources
     print("Backend shutting down")
 
 app = FastAPI(

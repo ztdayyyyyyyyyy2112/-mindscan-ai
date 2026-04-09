@@ -28,73 +28,78 @@ async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: As
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # 2. Get predictions from ML service
+    # 2. Get predictions from ML service (outside DB transaction)
     try:
         ml_result = predict_stress(survey.model_dump())
     except RuntimeError as e:
-        raise HTTPException(status_code=503, detail=str(e)) # Service Unavailable if ML errors
+        raise HTTPException(status_code=503, detail=str(e))
 
     stress_level = ml_result["stress_level"]
     confidence_score = ml_result["confidence_score"]
+    model_version = ml_result.get("model_version", "unknown")
 
-    # 3. Create database records inside a transaction block
-    # Note: Ensure order is correct
-    new_response = Response(
-        session_id=session_id,
-        age=survey.age,
-        gender=survey.gender,
-        anxiety_level=survey.anxiety_level,
-        depression=survey.depression,
-        self_esteem=survey.self_esteem,
-        mental_health_history=survey.mental_health_history,
-        blood_pressure=survey.blood_pressure,
-        sleep_quality=survey.sleep_quality,
-        headache=survey.headache,
-        breathing_problem=survey.breathing_problem,
-        study_load=survey.study_load,
-        academic_performance=survey.academic_performance,
-        teacher_student_relationship=survey.teacher_student_relationship,
-        future_career_concerns=survey.future_career_concerns,
-        social_support=survey.social_support,
-        peer_pressure=survey.peer_pressure,
-        extracurricular_activities=survey.extracurricular_activities,
-        bullying=survey.bullying,
-        noise_level=survey.noise_level,
-        living_conditions=survey.living_conditions,
-        safety=survey.safety,
-        basic_needs=survey.basic_needs
-    )
-    db.add(new_response)
-    await db.flush() # flush to get response_id
-
-    prediction = Prediction(
-        response_id=new_response.response_id,
-        stress_level=stress_level,
-        confidence_score=confidence_score
-    )
-    db.add(prediction)
-    await db.flush() # flush to get pred_id
-
-    # 4. Generate recommendations based on rule engine
-    rec_data = generate_recommendations(survey.model_dump(), stress_level)
-    rec_objects = []
-    
-    for r in rec_data:
-        reco = Recommendation(
-            pred_id=prediction.pred_id,
-            category=r["category"],
-            title=r["title"],
-            description=r["description"]
+    # 3. Atomic DB transaction — all-or-nothing
+    try:
+        new_response = Response(
+            session_id=session_id,
+            age=survey.age,
+            gender=survey.gender,
+            anxiety_level=survey.anxiety_level,
+            depression=survey.depression,
+            self_esteem=survey.self_esteem,
+            mental_health_history=survey.mental_health_history,
+            blood_pressure=survey.blood_pressure,
+            sleep_quality=survey.sleep_quality,
+            headache=survey.headache,
+            breathing_problem=survey.breathing_problem,
+            study_load=survey.study_load,
+            academic_performance=survey.academic_performance,
+            teacher_student_relationship=survey.teacher_student_relationship,
+            future_career_concerns=survey.future_career_concerns,
+            social_support=survey.social_support,
+            peer_pressure=survey.peer_pressure,
+            extracurricular_activities=survey.extracurricular_activities,
+            bullying=survey.bullying,
+            noise_level=survey.noise_level,
+            living_conditions=survey.living_conditions,
+            safety=survey.safety,
+            basic_needs=survey.basic_needs
         )
-        db.add(reco)
-        rec_objects.append(reco)
-        
-    await db.commit()
-    
-    # Reload the inserted data to fully format the response
-    await db.refresh(prediction)
-    # the relationship won't be hydrated cleanly via await refresh directly on objects without explicit loading,
-    # so we manually craft the return using the flushed objects.
+        db.add(new_response)
+        await db.flush()
+
+        prediction = Prediction(
+            response_id=new_response.response_id,
+            stress_level=stress_level,
+            confidence_score=confidence_score,
+            model_version=model_version
+        )
+        db.add(prediction)
+        await db.flush()
+
+        # 4. Generate recommendations based on rule engine
+        rec_data = generate_recommendations(survey.model_dump(), stress_level)
+        rec_objects = []
+
+        for r in rec_data:
+            reco = Recommendation(
+                pred_id=prediction.pred_id,
+                category=r["category"],
+                title=r["title"],
+                description=r["description"]
+            )
+            db.add(reco)
+            rec_objects.append(reco)
+
+        await db.commit()
+        await db.refresh(prediction)
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database transaction failed: {str(e)}"
+        )
 
     return {
         "session_id": session_id,
@@ -102,8 +107,8 @@ async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: As
             "pred_id": prediction.pred_id,
             "stress_level": prediction.stress_level,
             "confidence_score": prediction.confidence_score,
+            "model_version": prediction.model_version,
             "feature_importance": ml_result.get("feature_importance", {}),
-            "feature_contributions": ml_result.get("feature_contributions", []),
             "recommendations": rec_objects
         }
     }

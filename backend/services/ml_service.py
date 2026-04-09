@@ -3,7 +3,6 @@ import joblib
 import numpy as np
 import pandas as pd
 import logging
-import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +10,9 @@ logger = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "xgboost_stress_model.pkl")
 SCALER_PATH = os.path.join(BASE_DIR, "scaler.pkl")
+
+# Model version — update this when retraining the model
+MODEL_VERSION = "v1.0.0"
 
 # We use global variables to hold model instances so they only load once.
 _model = None
@@ -71,39 +73,26 @@ def predict_stress(input_data: dict) -> dict:
     features_df = pd.DataFrame([features], columns=FEATURE_NAMES)
     scaled_features = scaler.transform(features_df)
 
+    # Predict
     prediction = model.predict(scaled_features)
 
+    # Try probabilities
     try:
         probabilities = model.predict_proba(scaled_features)
         confidence = float(np.max(probabilities[0]))
     except Exception:
-        confidence = 1.0
+        confidence = 1.0  # Fallback if model has no predict_proba
 
     stress_level = int(prediction[0])
 
-    feature_importance = {}
-    feature_contributions = []
+    # --- Real Feature Importance from XGBoost model ---
     try:
-        booster = model.get_booster()
-        dmatrix = xgb.DMatrix(scaled_features, feature_names=FEATURE_NAMES)
-        contrib_matrix = booster.predict(dmatrix, pred_contribs=True)
-        if contrib_matrix.ndim == 3:
-            per_feature = contrib_matrix[0][stress_level][:-1]
-        else:
-            per_feature = contrib_matrix[0][:-1]
-        contrib_dict = {fname: float(val) for fname, val in zip(FEATURE_NAMES, per_feature)}
-        abs_pairs = [(fname, abs(val)) for fname, val in contrib_dict.items()]
-        sorted_pairs = sorted(abs_pairs, key=lambda x: x[1], reverse=True)[:6]
-        top_total = sum(val for _, val in sorted_pairs) or 1.0
-        feature_importance = {fname: round(abs(contrib_dict[fname]) / top_total, 4) for fname, _ in sorted_pairs}
-        feature_contributions = [
-            {
-                "feature": fname,
-                "contribution": contrib_dict[fname],
-                "magnitude": abs(contrib_dict[fname])
-            }
-            for fname in FEATURE_NAMES
-        ]
+        importances = model.feature_importances_
+        agg = {fname: float(imp) for fname, imp in zip(FEATURE_NAMES, importances)}
+        # Normalize to sum = 1, sort descending, keep top 6
+        total = sum(agg.values()) or 1.0
+        sorted_items = sorted(agg.items(), key=lambda x: x[1], reverse=True)[:6]
+        feature_importance = {k: round(v / total, 4) for k, v in sorted_items}
     except Exception:
         feature_importance = {
             "anxiety_level": 0.25,
@@ -112,11 +101,10 @@ def predict_stress(input_data: dict) -> dict:
             "study_load": 0.20,
             "social_support": 0.15
         }
-        feature_contributions = []
 
     return {
         "stress_level": stress_level,
         "confidence_score": confidence,
         "feature_importance": feature_importance,
-        "feature_contributions": feature_contributions
+        "model_version": MODEL_VERSION
     }

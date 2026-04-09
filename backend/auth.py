@@ -4,7 +4,14 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super_secret_mindscan_key_123")
+_jwt_secret = os.getenv("JWT_SECRET_KEY", "")
+if not _jwt_secret:
+    raise RuntimeError(
+        "JWT_SECRET_KEY environment variable is not set. "
+        "Please set it in backend/.env with a strong random value. "
+        "Example: JWT_SECRET_KEY=$(python -c \"import secrets; print(secrets.token_urlsafe(64))\")"
+    )
+SECRET_KEY = _jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
