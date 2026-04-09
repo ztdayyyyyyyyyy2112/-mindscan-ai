@@ -43,12 +43,17 @@ class RecommendationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class FeatureContribution(BaseModel):
+    feature: str
+    contribution: float
+    magnitude: float
+
 class PredictionResponse(BaseModel):
     pred_id: int
     stress_level: int
     confidence_score: float
-    model_version: Optional[str] = "unknown"
     feature_importance: Optional[Dict[str, float]] = None
+    feature_contributions: Optional[List[FeatureContribution]] = None
     recommendations: Optional[List[RecommendationResponse]] = []
 
     class Config:

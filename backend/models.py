@@ -56,7 +56,6 @@ class Prediction(Base):
     
     stress_level = Column(Integer) # 0: Low, 1: Medium, 2: High
     confidence_score = Column(Float)
-    model_version = Column(String(50), default="v1.0.0") # Track which model version made this prediction
     
     response = relationship("Response", back_populates="prediction")
     recommendations = relationship("Recommendation", back_populates="prediction", cascade="all, delete-orphan")
