@@ -45,7 +45,7 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { Player } from '@lottiefiles/react-lottie-player';
-import { analyzeSurveyData, AIRecommendation } from './services/geminiService';
+import { analyzeSurveyData, AIRecommendation, featureLabels } from './services/geminiService';
 import { translations } from './translations';
 
 const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confidence: number, t?: (key: string) => string, isDarkMode?: boolean }) => {
@@ -269,6 +269,48 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
+  const languageSwitcher = (
+    <div className="relative group/lang">
+      <div className={`p-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-slate-100'
+        }`}>
+        <Globe className={`w-5 h-5 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`} />
+        <span className={`text-sm font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-200' : 'text-slate-800'
+          }`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{language}</span>
+        <ChevronDown className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} transition-transform group-hover/lang:rotate-180`} />
+      </div>
+      {/* Dropdown menu */}
+      <div className="absolute top-full right-0 mt-2 w-36 py-2 rounded-2xl opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all z-50
+        shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border"
+        style={{
+          background: isDarkMode ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.98)',
+          backdropFilter: 'blur(12px)',
+          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+        }}>
+        {[
+          { code: 'vi', label: 'Tiếng Việt' },
+          { code: 'en', label: 'English' },
+          { code: 'fr', label: 'Français' },
+          { code: 'de', label: 'Deutsch' },
+          { code: 'zh', label: '中文' }
+        ].map(lang => (
+          <button
+            key={lang.code}
+            onClick={() => setLanguage(lang.code as any)}
+            className={`w-full text-left px-5 py-2.5 text-sm font-semibold transition-colors flex items-center justify-between
+              ${language === lang.code
+                ? (isDarkMode ? 'text-blue-400 bg-blue-500/10' : 'text-blue-600 bg-blue-50')
+                : (isDarkMode ? 'text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-50')
+              }`}
+            style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}
+          >
+            {lang.label}
+            {language === lang.code && <CheckCircle2 className="w-4 h-4" />}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   // Translation helper
   const t = (key: string): string => {
     const keys = key.split('.');
@@ -289,6 +331,18 @@ export default function App() {
       }
     }
     return typeof result === 'string' ? result : key;
+  };
+
+  const getFeatureLabel = (keyObj: string) => {
+    if (featureLabels[keyObj]) {
+      return (featureLabels[keyObj] as any)[language] || keyObj;
+    }
+    for (const map of Object.values(featureLabels)) {
+      if (Object.values(map).includes(keyObj)) {
+        return (map as any)[language] || keyObj;
+      }
+    }
+    return keyObj;
   };
 
   const formatTemplate = (template: string, vars: Record<string, string | number>) =>
@@ -883,13 +937,13 @@ export default function App() {
     const formatTop = (count: number) =>
       sorted
         .slice(0, count)
-        .map((item) => `${item.feature} (${Math.round(item.importance)}%)`)
+        .map((item) => `${getFeatureLabel(item.feature)} (${Math.round(item.importance)}%)`)
         .join(', ');
 
     const levelLabel = t(`results.${result.stress_level.toLowerCase()}`);
     const confidencePct = Math.round(result.confidence_score * 100);
-    const primary = sorted[0]?.feature;
-    const secondary = sorted[1]?.feature;
+    const primary = getFeatureLabel(String(sorted[0]?.feature || ''));
+    const secondary = getFeatureLabel(String(sorted[1]?.feature || ''));
 
     switch (language) {
       case 'en':
@@ -914,7 +968,7 @@ export default function App() {
         };
       default:
         return {
-          trends: `Mức stress hiện tại: ${levelLabel} (độ tin cậy ${confidencePct}%). Xu hướng chính: ${formatTop(3)}.`,
+          trends: `Mức stress hiện tại: ${levelLabel} (độ chính xác ${confidencePct}%). Xu hướng chính: ${formatTop(3)}.`,
           touchpoints: `Các yếu tố ảnh hưởng mạnh nhất: ${formatTop(2)}. Ưu tiên theo dõi ${primary}${secondary ? ` và ${secondary}` : ''}.`
         };
     }
@@ -928,12 +982,24 @@ export default function App() {
     const social = Math.round(((Number(formData.social_support) / 3 + Number(formData.extracurricular_activities) / 5) / 2) * 100);
     const finance = Math.round(((Number(formData.basic_needs) + Number(formData.living_conditions)) / 10) * 100);
     const exercise = Math.round(((Number(formData.extracurricular_activities) / 5 * 0.6) + ((5 - Number(formData.headache)) / 5 * 0.4)) * 100);
+    
+    const getRadarLabel = (cat: string) => {
+      const radMap: any = {
+         en: { study: "Study", sleep: "Sleep", social: "Social", finance: "Finance", exercise: "Exercise" },
+         vi: { study: "Học tập", sleep: "Giấc ngủ", social: "Xã hội", finance: "Tài chính", exercise: "Thể chất" },
+         fr: { study: "Études", sleep: "Sommeil", social: "Social", finance: "Finance", exercise: "Exercice" },
+         de: { study: "Studium", sleep: "Schlaf", social: "Soziales", finance: "Finanzen", exercise: "Sport" },
+         zh: { study: "学习", sleep: "睡眠", social: "社交", finance: "财务", exercise: "运动" }
+      };
+      return radMap[language]?.[cat] || radMap.en[cat];
+    };
+
     return [
-      { subject: 'Study', value: Math.min(100, Math.max(5, study)), fullMark: 100 },
-      { subject: 'Sleep', value: Math.min(100, Math.max(5, sleep)), fullMark: 100 },
-      { subject: 'Social', value: Math.min(100, Math.max(5, social)), fullMark: 100 },
-      { subject: 'Finance', value: Math.min(100, Math.max(5, finance)), fullMark: 100 },
-      { subject: 'Exercise', value: Math.min(100, Math.max(5, exercise)), fullMark: 100 },
+      { subject: getRadarLabel('study'), value: Math.min(100, Math.max(5, study)), fullMark: 100 },
+      { subject: getRadarLabel('sleep'), value: Math.min(100, Math.max(5, sleep)), fullMark: 100 },
+      { subject: getRadarLabel('social'), value: Math.min(100, Math.max(5, social)), fullMark: 100 },
+      { subject: getRadarLabel('finance'), value: Math.min(100, Math.max(5, finance)), fullMark: 100 },
+      { subject: getRadarLabel('exercise'), value: Math.min(100, Math.max(5, exercise)), fullMark: 100 },
     ];
   };
 
@@ -980,7 +1046,7 @@ export default function App() {
 
   const buildPeerData = () => [
     {
-      label: 'Sleep Hours',
+      label: getFeatureLabel('sleep_quality'),
       you: Math.round((Number(formData.sleep_quality) / 5) * 10),
       avg: 7,
       unit: 'hrs',
@@ -988,7 +1054,7 @@ export default function App() {
       avgPct: 70,
     },
     {
-      label: 'Study Load',
+      label: getFeatureLabel('study_load'),
       you: Number(formData.study_load),
       avg: 3,
       unit: '/5',
@@ -996,7 +1062,7 @@ export default function App() {
       avgPct: 60,
     },
     {
-      label: 'Social Activity',
+      label: getFeatureLabel('social_support'),
       you: Number(formData.social_support),
       avg: 2,
       unit: '/3',
@@ -1004,7 +1070,7 @@ export default function App() {
       avgPct: 65,
     },
     {
-      label: 'Exercise Score',
+      label: getFeatureLabel('extracurricular_activities'),
       you: Number(formData.extracurricular_activities),
       avg: 3,
       unit: '/5',
@@ -1012,7 +1078,7 @@ export default function App() {
       avgPct: 60,
     },
     {
-      label: 'Basic Needs',
+      label: getFeatureLabel('basic_needs'),
       you: Number(formData.basic_needs),
       avg: 4,
       unit: '/5',
@@ -1210,14 +1276,14 @@ export default function App() {
                 <button
                   onClick={() => setStressTrendPeriod('weekly')}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${stressTrendPeriod === 'weekly'
-                      ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
-                      : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
+                    ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                    : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
                     }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.weekly')}</button>
                 <button
                   onClick={() => setStressTrendPeriod('monthly')}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${stressTrendPeriod === 'monthly'
-                      ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
-                      : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
+                    ? (isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                    : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100/70')
                     }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.monthly')}</button>
               </div>
             </div>
@@ -1319,9 +1385,9 @@ export default function App() {
                     key={`day-${day}`}
                     className="aspect-square rounded-lg transition-transform hover:scale-110 relative flex items-center justify-center"
                     style={{ backgroundColor: bgColor, cursor: 'default' }}
-                      title={`${t('ui.day')} ${day}: ${stressLevel === 0 ? t('ui.noData') :
-                        stressLevel === 1 ? t('ui.lowStress') :
-                          stressLevel === 2 ? t('ui.mediumStress') : t('ui.highStress')
+                    title={`${t('ui.day')} ${day}: ${stressLevel === 0 ? t('ui.noData') :
+                      stressLevel === 1 ? t('ui.lowStress') :
+                        stressLevel === 2 ? t('ui.mediumStress') : t('ui.highStress')
                       }`}
                   >
                     {today && (
@@ -1378,8 +1444,8 @@ export default function App() {
                     style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.label}</span>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${item.youPct >= item.avgPct
-                        ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
-                        : (isDarkMode ? 'bg-purple-500/15 text-purple-300' : 'bg-purple-50 text-purple-700')
+                      ? (isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700')
+                      : (isDarkMode ? 'bg-purple-500/15 text-purple-300' : 'bg-purple-50 text-purple-700')
                       }`} style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
                       You: {item.you}{item.unit}
                     </span>
@@ -1576,8 +1642,8 @@ export default function App() {
           }`}>
           {/* Light mode: floating glass pill wrapper */}
           <div className={`flex items-center justify-between w-full transition-all duration-500 ${isDarkMode
-              ? ''
-              : 'bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-full px-5 py-2'
+            ? ''
+            : 'bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-full px-5 py-2'
             }`}>
             <div className="flex items-center gap-8 min-w-0">
               <div className={`text-xl font-bold tracking-tight cursor-pointer transition-colors duration-500 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`} onClick={() => { setIsSurveyOpen(false); setIsCompleted(false); setCurrentStep(1); }}>{t('appName')}</div>
@@ -1600,8 +1666,8 @@ export default function App() {
                     value={activeDataModule}
                     onChange={(e) => setActiveDataModule(e.target.value as 'dashboard' | 'analytics')}
                     className={`appearance-none pl-4 pr-10 py-2 rounded-full text-sm font-semibold border backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400/40 ${isDarkMode
-                        ? 'bg-white/10 text-slate-100 border-white/15 hover:bg-white/15 shadow-[0_8px_24px_rgba(2,6,23,0.35),inset_0_1px_1px_rgba(255,255,255,0.12)]'
-                        : 'bg-white/55 text-slate-700 border-white/70 hover:bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]'
+                      ? 'bg-white/10 text-slate-100 border-white/15 hover:bg-white/15 shadow-[0_8px_24px_rgba(2,6,23,0.35),inset_0_1px_1px_rgba(255,255,255,0.12)]'
+                      : 'bg-white/55 text-slate-700 border-white/70 hover:bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]'
                       }`}
                     style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
                   >
@@ -1715,8 +1781,8 @@ export default function App() {
                   <button
                     onClick={() => setIsSurveyOpen(true)}
                     className={`relative overflow-hidden rounded-full font-semibold px-5 py-2 text-sm transition-all duration-300 flex items-center gap-2 group ${isDarkMode
-                        ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500'
-                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                      ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5'
                       }`}
                   >
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -1733,7 +1799,7 @@ export default function App() {
                   className={`flex items-center rounded-full p-1 pr-3 cursor-pointer transition-colors border ${isDarkMode
                     ? 'bg-black/90 hover:bg-black border-white/10 shadow-lg shadow-black/20'
                     : 'bg-white/60 hover:bg-white/90 border-white/60 shadow-sm'
-                  }`}
+                    }`}
                 >
                   <img
                     src={`https://hatscripts.github.io/circle-flags/flags/${language === 'en' ? 'gb' : language === 'fr' ? 'fr' : language === 'de' ? 'de' : language === 'zh' ? 'cn' : 'vn'}.svg`}
@@ -2099,8 +2165,8 @@ export default function App() {
                 <div className="grid md:grid-cols-3 gap-8">
                   {/* Card 1 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                      ? 'bg-gradient-to-br from-blue-950/60 to-slate-900/60 border-blue-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                      : 'bg-white/75 border-sky-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
+                    ? 'bg-gradient-to-br from-blue-950/60 to-slate-900/60 border-blue-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
+                    : 'bg-white/75 border-sky-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                     }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-blue-100 text-blue-600 border-blue-200'
                       }`}>
@@ -2114,8 +2180,8 @@ export default function App() {
 
                   {/* Card 2 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                      ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900/60 border-emerald-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                      : 'bg-white/75 border-green-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
+                    ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900/60 border-emerald-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
+                    : 'bg-white/75 border-green-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                     }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-green-100 text-green-600 border-green-200'
                       }`}>
@@ -2129,8 +2195,8 @@ export default function App() {
 
                   {/* Card 3 */}
                   <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                      ? 'bg-gradient-to-br from-purple-950/60 to-slate-900/60 border-purple-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                      : 'bg-white/75 border-purple-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
+                    ? 'bg-gradient-to-br from-purple-950/60 to-slate-900/60 border-purple-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
+                    : 'bg-white/75 border-purple-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
                     }`}>
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-purple-100 text-purple-600 border-purple-200'
                       }`}>
@@ -2220,8 +2286,8 @@ export default function App() {
 
             {/* Footer */}
             <footer className={`border-t pt-12 pb-8 relative z-10 transition-colors duration-500 ${isDarkMode
-                ? 'border-white/10 bg-black/30 backdrop-blur-2xl'
-                : 'border-slate-200/60 bg-white/70 backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
+              ? 'border-white/10 bg-black/30 backdrop-blur-2xl'
+              : 'border-slate-200/60 bg-white/70 backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
               }`}>
               <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
@@ -2404,7 +2470,7 @@ export default function App() {
                                       return (
                                         <div key={`bar-${idx}`} style={{ width: `${pct}%`, backgroundColor: color }}
                                           className="h-full flex items-center justify-center text-[10px] text-white font-bold"
-                                          title={`${item.feature}: ${Math.round(item.importance)}%`}>
+                                          title={`${getFeatureLabel(item.feature)}: ${Math.round(item.importance)}%`}>
                                           {pct > 8 ? Math.round(item.importance) : ''}
                                         </div>
                                       );
@@ -2419,7 +2485,7 @@ export default function App() {
                                           <span className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: dotColor }} />
                                           <div>
                                             <div className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{item.feature}</div>
+                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{getFeatureLabel(item.feature)}</div>
                                             <div className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
                                               style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{Math.round(item.importance)}% {t('ui.impact')}</div>
                                           </div>
@@ -2427,45 +2493,57 @@ export default function App() {
                                       );
                                     })}
                                   </div>
-                                </div>
-                              </div>
-
-                              {/* Prominent Trends + Critical Touchpoints */}
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
-                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-teal-500/20 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}>
-                                    <Activity className="w-6 h-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                      <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
-                                        style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.prominentTrends')}</h4>
-                                      <Info className={`w-4 h-4 shrink-0 ${isDarkMode ? 'text-slate-500' : 'text-slate-300'}`} />
-                                    </div>
-                                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                      {insightCopy?.trends || t('ui.prominentTrendsFallback')}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className={`analytics-glass-card rounded-[1.75rem] p-5 flex items-center gap-4 border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
-                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isDarkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                                    <CheckCircle2 className="w-6 h-6" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className={`text-base font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                  <div className="mt-8 border-t border-slate-200/50 dark:border-white/10 pt-6">
+                                    <h4 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                       style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.criticalTouchpoints')}</h4>
                                     <div className="flex flex-wrap gap-2">
                                       {(insightMeta?.topFeatures || []).map((item, idx) => (
                                         <span key={`touch-${idx}`}
                                           className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
                                           style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                                          {item.feature} ({Math.round(item.importance)}%)
+                                          {getFeatureLabel(item.feature)} ({Math.round(item.importance)}%)
                                         </span>
                                       ))}
                                     </div>
                                   </div>
+                                </div>
+                              </div>
+
+                              {/* Prominent Trends */}
+                              <div className="max-w-2xl mx-auto w-full mt-4">
+                                <div className={`analytics-glass-card w-full rounded-[1.75rem] p-5 flex flex-col items-center text-center border border-white/40 ${isDarkMode ? 'dark' : ''}`}>
+                                  <h4 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
+                                    style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.prominentTrends')}</h4>
+                                  {(() => {
+                                    const rawTrends = String(insightCopy?.trends || t('ui.prominentTrendsFallback'));
+                                    let trendsList: string[] = [];
+                                    const splitKeyword = rawTrends.includes("Xu hướng chính:") ? "Xu hướng chính:" : (rawTrends.includes("Xu hướng chính") ? "Xu hướng chính" : null);
+
+                                    if (splitKeyword) {
+                                      const parts = rawTrends.split(splitKeyword);
+                                      trendsList = parts[1]
+                                        .split(/[,;\n]+/)
+                                        .map(s => s.replace(/\.$/, "").trim())
+                                        .filter(Boolean);
+                                    } else {
+                                      trendsList = rawTrends
+                                        .split(/[,;\n•]+/)
+                                        .map(s => s.replace(/\.$/, "").trim())
+                                        .filter(Boolean);
+                                    }
+
+                                    return (
+                                      <div className="flex flex-wrap justify-center gap-2">
+                                        {trendsList.map((item, idx) => (
+                                          <span key={`trend-${idx}`}
+                                            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
+                                            style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                            {item}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               </div>
 

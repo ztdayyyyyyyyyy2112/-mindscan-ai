@@ -20,7 +20,7 @@ export interface AIRecommendation {
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080';
 
 // Multilingual feature labels
-const featureLabels: Record<string, Record<'vi' | 'en' | 'de' | 'zh' | 'fr', string>> = {
+export const featureLabels: Record<string, Record<'vi' | 'en' | 'de' | 'zh' | 'fr', string>> = {
   anxiety_level:               { vi: 'Mức độ lo âu',      en: 'Anxiety Level',         de: 'Angstniveau',          zh: '焦虑程度', fr: 'Niveau d\'anxiété' },
   depression:                  { vi: 'Trầm cảm',           en: 'Depression',             de: 'Depression',           zh: '抑郁程度', fr: 'Dépression' },
   self_esteem:                 { vi: 'Lòng tự trọng',      en: 'Self Esteem',            de: 'Selbstwertgefühl',     zh: '自我评价', fr: 'Estime de soi' },
@@ -163,12 +163,11 @@ export async function analyzeSurveyData(data: any, language: 'vi' | 'en' | 'de' 
     // Map numerical stress level to verbal
     const levelStr = p.stress_level === 2 ? "High" : p.stress_level === 1 ? "Medium" : "Low";
 
-    // Convert feature dictionary to array with multilingual labels
+    // Convert feature dictionary to array with raw keys for frontend translation
     const features = Object.entries(p.feature_importance).map(([k, v]) => {
-      const label = featureLabels[k]?.[language] || featureLabels[k]?.['en'] || k;
       const color = featureColors[k] || '#cbd5e1';
       return {
-        feature: label,
+        feature: k,
         importance: Math.round((v as number) * 100),
         color
       };
