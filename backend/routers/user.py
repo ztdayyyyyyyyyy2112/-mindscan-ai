@@ -96,6 +96,17 @@ async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: As
     # the relationship won't be hydrated cleanly via await refresh directly on objects without explicit loading,
     # so we manually craft the return using the flushed objects.
 
+    # Build recommendations list with i18n_key from rec_data (DB doesn't store i18n_key)
+    recs_response = []
+    for reco_obj, reco_data in zip(rec_objects, rec_data):
+        recs_response.append({
+            "reco_id": reco_obj.reco_id,
+            "category": reco_obj.category,
+            "i18n_key": reco_data.get("i18n_key"),
+            "title": reco_obj.title,
+            "description": reco_obj.description,
+        })
+
     return {
         "session_id": session_id,
         "prediction": {
@@ -104,9 +115,10 @@ async def submit_survey_and_predict(session_id: str, survey: SurveyInput, db: As
             "confidence_score": prediction.confidence_score,
             "feature_importance": ml_result.get("feature_importance", {}),
             "feature_contributions": ml_result.get("feature_contributions", []),
-            "recommendations": rec_objects
+            "recommendations": recs_response
         }
     }
+
 
 
 @router.get("/recommend/{pred_id}", response_model=list[RecommendationResponse])

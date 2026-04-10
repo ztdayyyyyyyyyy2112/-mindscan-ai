@@ -388,7 +388,7 @@ export default function App() {
 
   useEffect(() => {
     // Storage version — bump this to clear stale data after format changes
-    const STORAGE_VERSION = 'v2';
+    const STORAGE_VERSION = 'v3'; // v3: raw feature keys in dummy history + ISO date format
     const storedVersion = localStorage.getItem('mindscan_storage_version');
     if (storedVersion !== STORAGE_VERSION) {
       // Clear old history entries that may have bad color data
@@ -409,29 +409,30 @@ export default function App() {
     if (history) {
       setSessionHistory(JSON.parse(history));
     } else {
+      // Dummy history uses raw feature keys so getFeatureLabel() can translate them
       const dummyHistory = [
         {
-          date: '10 Mar 2026',
+          date: '2026-03-10',
           stressScore: 30,
           level: 'Low',
           features: [
-            { feature: 'Giấc ngủ', importance: 40, color: '#6ee7b7' },
-            { feature: 'Học tập', importance: 30, color: '#2dd4bf' },
-            { feature: 'Xã hội', importance: 20, color: '#c084fc' },
-            { feature: 'Thể chất', importance: 5, color: '#cbd5e1' },
-            { feature: 'Tài chính', importance: 5, color: '#fb7185' },
+            { feature: 'sleep_quality',              importance: 40, color: '#6ee7b7' },
+            { feature: 'study_load',                 importance: 30, color: '#2dd4bf' },
+            { feature: 'social_support',             importance: 20, color: '#c084fc' },
+            { feature: 'extracurricular_activities', importance: 5,  color: '#cbd5e1' },
+            { feature: 'basic_needs',                importance: 5,  color: '#fb7185' },
           ]
         },
         {
-          date: '12 Mar 2026',
+          date: '2026-03-12',
           stressScore: 60,
           level: 'Medium',
           features: [
-            { feature: 'Giấc ngủ', importance: 20, color: '#6ee7b7' },
-            { feature: 'Học tập', importance: 40, color: '#2dd4bf' },
-            { feature: 'Xã hội', importance: 15, color: '#c084fc' },
-            { feature: 'Thể chất', importance: 10, color: '#cbd5e1' },
-            { feature: 'Tài chính', importance: 15, color: '#fb7185' },
+            { feature: 'sleep_quality',              importance: 20, color: '#6ee7b7' },
+            { feature: 'study_load',                 importance: 40, color: '#2dd4bf' },
+            { feature: 'social_support',             importance: 15, color: '#c084fc' },
+            { feature: 'extracurricular_activities', importance: 10, color: '#cbd5e1' },
+            { feature: 'basic_needs',                importance: 15, color: '#fb7185' },
           ]
         }
       ];
@@ -440,8 +441,9 @@ export default function App() {
   }, []);
 
   const saveToHistory = (result: AIRecommendation) => {
+    // Store ISO date string; render uses locale-aware formatting at display time
     const newEntry = {
-      date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      date: new Date().toISOString().split('T')[0], // 'YYYY-MM-DD'
       stressScore: result.stress_level === 'High' ? 85 : result.stress_level === 'Medium' ? 50 : 20,
       level: result.stress_level,
       features: result.feature_importance
@@ -451,6 +453,14 @@ export default function App() {
       localStorage.setItem(`mindscan_history_${sessionId}`, JSON.stringify(updated));
       return updated;
     });
+  };
+
+  // Format a stored ISO date string (YYYY-MM-DD) using the current locale
+  const localeMap: Record<string, string> = { vi: 'vi-VN', en: 'en-US', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN' };
+  const formatSessionDate = (dateStr: string): string => {
+    const d = new Date(dateStr + 'T00:00:00'); // avoid UTC offset shifts
+    if (isNaN(d.getTime())) return dateStr;    // fallback for legacy entries
+    return d.toLocaleDateString(localeMap[language] ?? 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const startSurvey = () => {
@@ -1595,14 +1605,31 @@ export default function App() {
     return cards;
   };
 
+  // Map from backend i18n_key to frontend translation key pairs
+  const backendI18nMap: Record<string, { titleKey: string; descKey: string }> = {
+    highStress:  { titleKey: 'results.actionCards.highStressTitle', descKey: 'results.actionCards.highStressDesc' },
+    sleep:       { titleKey: 'results.actionCards.sleepTitle',      descKey: 'results.actionCards.sleepDesc' },
+    studyLoad:   { titleKey: 'results.actionCards.studyLoadTitle',  descKey: 'results.actionCards.studyLoadDesc' },
+    anxiety:     { titleKey: 'results.actionCards.anxietyTitle',    descKey: 'results.actionCards.anxietyDesc' },
+    mood:        { titleKey: 'results.actionCards.moodTitle',       descKey: 'results.actionCards.moodDesc' },
+    support:     { titleKey: 'results.actionCards.supportTitle',    descKey: 'results.actionCards.supportDesc' },
+    bullying:    { titleKey: 'results.actionCards.bullyingTitle',   descKey: 'results.actionCards.bullyingDesc' },
+    needs:       { titleKey: 'results.actionCards.needsTitle',      descKey: 'results.actionCards.needsDesc' },
+    weekPlan:    { titleKey: 'results.actionCards.weekPlanTitle',   descKey: 'results.actionCards.weekPlanDesc' },
+  };
+
   const actionCards: ActionCardItem[] = aiResult
     ? (() => {
-      const base = aiResult.recommendations.map((rec) => ({
-        id: rec.id,
-        title: rec.title,
-        description: rec.description,
-        categoryKey: (rec as any).categoryKey || 'general'
-      }));
+      const base = aiResult.recommendations.map((rec: any) => {
+        const i18nKey = rec.i18n_key as string | undefined;
+        const mapped = i18nKey ? backendI18nMap[i18nKey] : undefined;
+        return {
+          id: `backend-${rec.reco_id ?? rec.i18n_key ?? Math.random()}`,
+          categoryKey: rec.category || 'general',
+          title: mapped ? t(mapped.titleKey) : rec.title,
+          description: mapped ? t(mapped.descKey) : rec.description,
+        };
+      });
       const personalized = buildPersonalizedActionCards(aiResult, formData);
       const merged: ActionCardItem[] = [];
       const seen = new Set<string>();
@@ -1614,6 +1641,7 @@ export default function App() {
       return merged;
     })()
     : [];
+
 
   return (
     <div className={`min-h-screen font-sans text-slate-900 dark:text-slate-100 relative overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'dark bg-gradient-to-br from-[#020510] via-[#0a0f1e] to-[#0d1b3e]' : 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100'}`}>
@@ -2516,26 +2544,25 @@ export default function App() {
                                   <h4 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                     style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.prominentTrends')}</h4>
                                   {(() => {
+                                    // buildInsightCopy() always formats as:
+                                    // "<intro>. Top trends: <f1>, <f2>, <f3>."
+                                    // We extract ONLY the feature tags (format: "Label (XX%)").
                                     const rawTrends = String(insightCopy?.trends || t('ui.prominentTrendsFallback'));
-                                    let trendsList: string[] = [];
-                                    const splitKeyword = rawTrends.includes("Xu hướng chính:") ? "Xu hướng chính:" : (rawTrends.includes("Xu hướng chính") ? "Xu hướng chính" : null);
+                                    // Match all "Label (XX%)" tokens regardless of language
+                                    const tagRegex = /([^,;\n(]+\([^)]+%\))/g;
+                                    const tagMatches = rawTrends.match(tagRegex) || [];
+                                    const trendsList: string[] = tagMatches
+                                      .map(s => s.trim())
+                                      .filter(Boolean);
 
-                                    if (splitKeyword) {
-                                      const parts = rawTrends.split(splitKeyword);
-                                      trendsList = parts[1]
-                                        .split(/[,;\n]+/)
-                                        .map(s => s.replace(/\.$/, "").trim())
-                                        .filter(Boolean);
-                                    } else {
-                                      trendsList = rawTrends
-                                        .split(/[,;\n•]+/)
-                                        .map(s => s.replace(/\.$/, "").trim())
-                                        .filter(Boolean);
-                                    }
+                                    // Final fallback: split on commas/semicolons
+                                    const displayList = trendsList.length > 0
+                                      ? trendsList
+                                      : rawTrends.split(/[,;\n•]+/).map(s => s.replace(/\.$/, '').trim()).filter(Boolean);
 
                                     return (
                                       <div className="flex flex-wrap justify-center gap-2">
-                                        {trendsList.map((item, idx) => (
+                                        {displayList.map((item, idx) => (
                                           <span key={`trend-${idx}`}
                                             className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-white/60 text-slate-700'}`}
                                             style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
@@ -2568,7 +2595,7 @@ export default function App() {
                                           <div key={`history-${session.date}-${idx}`}
                                             className={`analytics-glass-card rounded-2xl p-4 flex items-center gap-6 border border-white/40 group hover:bg-white/60 transition-colors ${isDarkMode ? 'dark' : ''}`}>
                                             <div className={`w-24 text-xs font-bold shrink-0 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{session.date}</div>
+                                              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{formatSessionDate(session.date)}</div>
                                             <div className="flex-1">
                                               {session.features && (
                                                 <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">

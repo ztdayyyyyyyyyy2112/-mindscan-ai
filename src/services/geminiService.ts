@@ -10,12 +10,14 @@ export interface AIRecommendation {
     id: string;
     category: string;
     categoryKey: string; // language-agnostic key for icon mapping
+    i18n_key?: string | null; // backend i18n key for translation lookup
     title: string;
     description: string;
     priority: "Cao" | "Trung bình" | "Thấp" | "Cơ bản";
   }[];
   emergency_contact?: string;
 }
+
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080';
 
@@ -173,15 +175,17 @@ export async function analyzeSurveyData(data: any, language: 'vi' | 'en' | 'de' 
       };
     });
 
-    // Wrap backend recommendations with language-agnostic categoryKey
+    // Wrap backend recommendations with language-agnostic categoryKey and i18n_key
     const recs = (p.recommendations || []).map((r: any) => ({
       id: "rec-" + r.reco_id,
       category: r.category || "General",
-      categoryKey: getCategoryKey(r.category || ''),
+      categoryKey: r.category || getCategoryKey(r.category || ''),
+      i18n_key: r.i18n_key || null,
       title: r.title || "Suggestion",
       description: r.description || "",
       priority: "Cơ bản" as const
     }));
+
 
     return {
       stress_level: levelStr,
