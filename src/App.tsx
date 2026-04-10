@@ -60,7 +60,10 @@ const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confi
   const y1 = cy + r * Math.sin(startAngle);
   const x2 = cx + r * Math.cos(endAngle);
   const y2 = cy + r * Math.sin(endAngle);
-  const largeArc = arcProgress > 0.5 ? 1 : 0;
+  
+  // Since the maximum arc is 180 degrees (Math.PI), the arc drawn covers at most 180 degrees.
+  // Therefore, largeArcFlag is always 0.
+  const largeArc = 0; 
   const arcPath = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 
   const levelDisplay = t
