@@ -36,7 +36,8 @@ import {
   LayoutDashboard,
   TrendingUp,
   Calendar,
-  GitCompare
+  GitCompare,
+  X
 } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -60,10 +61,10 @@ const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confi
   const y1 = cy + r * Math.sin(startAngle);
   const x2 = cx + r * Math.cos(endAngle);
   const y2 = cy + r * Math.sin(endAngle);
-  
+
   // Since the maximum arc is 180 degrees (Math.PI), the arc drawn covers at most 180 degrees.
   // Therefore, largeArcFlag is always 0.
-  const largeArc = 0; 
+  const largeArc = 0;
   const arcPath = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 
   const levelDisplay = t
@@ -222,6 +223,7 @@ export default function App() {
   const [aiResult, setAiResult] = useState<AIRecommendation | null>(null);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showEthicsModal, setShowEthicsModal] = useState(false);
+  const [showTechnologyModal, setShowTechnologyModal] = useState(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [bookmarkedRecs, setBookmarkedRecs] = useState<string[]>(() => {
@@ -232,7 +234,6 @@ export default function App() {
   const [sessionId, setSessionId] = useState<string>('');
   const [showAllRecs, setShowAllRecs] = useState(false);
   const [stepError, setStepError] = useState<string>('');
-  const [earthRotation, setEarthRotation] = useState(0);
   const [activeDataModule, setActiveDataModule] = useState<'dashboard' | 'analytics'>('dashboard');
   const [stressTrendPeriod, setStressTrendPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [radarAnimated, setRadarAnimated] = useState(false);
@@ -248,18 +249,20 @@ export default function App() {
   ] as const;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Randomly change direction and amount every 2.66s (1.5x faster than 4s)
-      const direction = Math.random() > 0.5 ? 1 : -1;
-      const amount = 30 + Math.random() * 60; // 30 to 90 degrees
-      setEarthRotation(prev => prev + (direction * amount));
-    }, 2666);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (showTechnologyModal || showPrivacyModal || showEthicsModal || showEmergencyModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showTechnologyModal, showPrivacyModal, showEthicsModal, showEmergencyModal]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -419,11 +422,11 @@ export default function App() {
           stressScore: 30,
           level: 'Low',
           features: [
-            { feature: 'sleep_quality',              importance: 40, color: '#6ee7b7' },
-            { feature: 'study_load',                 importance: 30, color: '#2dd4bf' },
-            { feature: 'social_support',             importance: 20, color: '#c084fc' },
-            { feature: 'extracurricular_activities', importance: 5,  color: '#cbd5e1' },
-            { feature: 'basic_needs',                importance: 5,  color: '#fb7185' },
+            { feature: 'sleep_quality', importance: 40, color: '#6ee7b7' },
+            { feature: 'study_load', importance: 30, color: '#2dd4bf' },
+            { feature: 'social_support', importance: 20, color: '#c084fc' },
+            { feature: 'extracurricular_activities', importance: 5, color: '#cbd5e1' },
+            { feature: 'basic_needs', importance: 5, color: '#fb7185' },
           ]
         },
         {
@@ -431,11 +434,11 @@ export default function App() {
           stressScore: 60,
           level: 'Medium',
           features: [
-            { feature: 'sleep_quality',              importance: 20, color: '#6ee7b7' },
-            { feature: 'study_load',                 importance: 40, color: '#2dd4bf' },
-            { feature: 'social_support',             importance: 15, color: '#c084fc' },
+            { feature: 'sleep_quality', importance: 20, color: '#6ee7b7' },
+            { feature: 'study_load', importance: 40, color: '#2dd4bf' },
+            { feature: 'social_support', importance: 15, color: '#c084fc' },
             { feature: 'extracurricular_activities', importance: 10, color: '#cbd5e1' },
-            { feature: 'basic_needs',                importance: 15, color: '#fb7185' },
+            { feature: 'basic_needs', importance: 15, color: '#fb7185' },
           ]
         }
       ];
@@ -622,90 +625,148 @@ export default function App() {
   const renderHowItWorksModal = () => (
     <AnimatePresence>
       {isHowItWorksOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-            className={`relative w-full max-w-5xl rounded-[2rem] overflow-hidden p-8 md:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.3)] border ${isDarkMode ? 'bg-[#0b132b]/80 border-white/10 text-white backdrop-blur-3xl' : 'bg-[#0b132b]/95 border-blue-900/50 text-white backdrop-blur-3xl'}`}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setIsHowItWorksOpen(false)}
-              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <motion.div
+              key={language}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${
+                isDarkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'
+              }`}
             >
-              <span className="text-xl">&times;</span>
-            </button>
+              {/* Fixed Header */}
+              <div className={`sticky top-0 z-10 border-b p-6 flex items-center justify-between ${
+                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {t('howItWorks.title')}
+                </h2>
+                <button
+                  onClick={() => setIsHowItWorksOpen(false)}
+                  className={`p-1 rounded-lg transition-colors ${
+                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-            <div className="text-center mb-12 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('tech.title')}</h2>
-              <p className="text-gray-300 text-lg leading-relaxed">{t('tech.subtitle')}</p>
-            </div>
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto flex-1 p-6 space-y-6">
+                {/* Intro */}
+                <p className={`text-lg leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {t('howItWorks.intro')}
+                </p>
 
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Side: 3 Features */}
-              <div className="space-y-8">
-                {/* Feature 1 */}
-                <div className="flex gap-6">
-                  <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
-                    <Activity className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{t('tech.point1Title')}</h3>
-                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point1Text')}</p>
-                  </div>
+                {/* Pillars Section */}
+                <div className="space-y-4">
+                  {[
+                    { key: 'pillar1' },
+                    { key: 'pillar2' },
+                    { key: 'pillar3' },
+                  ].map((item) => (
+                    <div
+                      key={item.key}
+                      className={`p-5 rounded-xl border ${
+                        isDarkMode
+                          ? 'bg-gray-800/50 border-gray-700/50'
+                          : 'bg-gray-50 border-gray-200/50'
+                      }`}
+                    >
+                      <h3 className={`font-bold text-lg mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {t(`howItWorks.${item.key}Title`)}
+                      </h3>
+                      <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {t(`howItWorks.${item.key}Text`)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-                {/* Feature 2 */}
-                <div className="flex gap-6">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-                    <CheckCircle2 className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{t('tech.point2Title')}</h3>
-                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point2Text')}</p>
-                  </div>
+
+                {/* Reliability Stat */}
+                <div className={`p-4 rounded-xl text-center border ${
+                  isDarkMode
+                    ? 'bg-gray-800/50 border-gray-700/50'
+                    : 'bg-gray-50 border-gray-200/50'
+                }`}>
+                  <p className={`font-semibold text-lg ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {t('howItWorks.reliability')}
+                  </p>
                 </div>
-                {/* Feature 3 */}
-                <div className="flex gap-6">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
-                    <Brain className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{t('tech.point3Title')}</h3>
-                    <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point3Text')}</p>
+
+                {/* Flowchart Section */}
+                <div className="space-y-3 mt-8">
+                  <h3 className={`font-bold text-lg mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {t('howItWorks.processTitle')}
+                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Step 1 */}
+                    <div className={`flex-1 p-4 rounded-lg text-center border ${
+                      isDarkMode
+                        ? 'bg-gray-800/50 border-gray-700/50'
+                        : 'bg-gray-50 border-gray-200/50'
+                    }`}>
+                      <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {t('howItWorks.flowStep1')}
+                      </p>
+                    </div>
+
+                    {/* Arrow 1 */}
+                    <div className={`flex-shrink-0 text-2xl ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                      →
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className={`flex-1 p-4 rounded-lg text-center border ${
+                      isDarkMode
+                        ? 'bg-gray-800/50 border-gray-700/50'
+                        : 'bg-gray-50 border-gray-200/50'
+                    }`}>
+                      <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {t('howItWorks.flowStep2')}
+                      </p>
+                    </div>
+
+                    {/* Arrow 2 */}
+                    <div className={`flex-shrink-0 text-2xl ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                      →
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className={`flex-1 p-4 rounded-lg text-center border ${
+                      isDarkMode
+                        ? 'bg-gray-800/50 border-gray-700/50'
+                        : 'bg-gray-50 border-gray-200/50'
+                    }`}>
+                      <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {t('howItWorks.flowStep3')}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Side: Code Mockup */}
-              <div className="bg-[#1e293b] rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative mt-4 lg:mt-0">
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
-                  <Lock className="w-4 h-4 text-blue-400" />
-                  <span className="font-semibold text-sm tracking-wide text-gray-200">{t('tech.modelTitle')}</span>
-                </div>
-
-                {/* Code Body */}
-                <div className="p-6 font-mono text-sm overflow-x-auto text-gray-300">
-                  <div className="flex gap-4"><span className="text-blue-400">model</span> <span className="text-gray-400">=</span> <span className="text-emerald-400">XGBClassifier</span><span className="text-gray-400">(</span></div>
-                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">n_estimators</span><span className="text-gray-400">=</span><span className="text-orange-300">200</span><span className="text-gray-400">,</span></div>
-                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">learning_rate</span><span className="text-gray-400">=</span><span className="text-orange-300">0.05</span><span className="text-gray-400">,</span></div>
-                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">max_depth</span><span className="text-gray-400">=</span><span className="text-orange-300">6</span><span className="text-gray-400">,</span></div>
-                  <div className="flex gap-4 pl-4"><span className="text-indigo-300">objective</span><span className="text-gray-400">=</span><span className="text-green-300">'multi:softprob'</span></div>
-                  <div className="flex gap-4"><span className="text-gray-400">)</span></div>
-                  <div className="flex gap-4 mt-6"><span className="text-gray-500 italic">/* {t('ui.predictionOutput')}: LOW, MEDIUM, HIGH */</span></div>
-                </div>
-
-                {/* Footer Stats */}
-                <div className="px-6 py-5 border-t border-white/5 flex items-center justify-between bg-black/20">
-                  <span className="text-sm font-medium text-gray-400">{t('tech.modelAcc')}</span>
-                  <div className="bg-emerald-500/20 text-emerald-400 font-mono font-bold px-3 py-1 rounded text-sm border border-emerald-500/30">
-                    92.4%
-                  </div>
-                </div>
+              {/* Fixed Footer */}
+              <div className={`sticky bottom-0 border-t p-4 bg-gradient-to-r ${
+                isDarkMode
+                  ? 'border-gray-700 from-gray-800 to-gray-800'
+                  : 'border-gray-200 from-gray-50 to-gray-50'
+              }`}>
+                <button
+                  onClick={() => setIsHowItWorksOpen(false)}
+                  className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                    isDarkMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                  }`}
+                >
+                  {t('howItWorks.close')}
+                </button>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       )}
     </AnimatePresence>
@@ -716,6 +777,7 @@ export default function App() {
       {showEmergencyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
           <motion.div
+            key={language}
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
             className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-lg w-full text-center ${isDarkMode ? 'bg-[#0b132b]/80 border-white/10' : 'bg-white/95 border border-gray-200'}`}
           >
@@ -995,14 +1057,14 @@ export default function App() {
     const social = Math.round(((Number(formData.social_support) / 3 + Number(formData.extracurricular_activities) / 5) / 2) * 100);
     const finance = Math.round(((Number(formData.basic_needs) + Number(formData.living_conditions)) / 10) * 100);
     const exercise = Math.round(((Number(formData.extracurricular_activities) / 5 * 0.6) + ((5 - Number(formData.headache)) / 5 * 0.4)) * 100);
-    
+
     const getRadarLabel = (cat: string) => {
       const radMap: any = {
-         en: { study: "Study", sleep: "Sleep", social: "Social", finance: "Finance", exercise: "Exercise" },
-         vi: { study: "Học tập", sleep: "Giấc ngủ", social: "Xã hội", finance: "Tài chính", exercise: "Thể chất" },
-         fr: { study: "Études", sleep: "Sommeil", social: "Social", finance: "Finance", exercise: "Exercice" },
-         de: { study: "Studium", sleep: "Schlaf", social: "Soziales", finance: "Finanzen", exercise: "Sport" },
-         zh: { study: "学习", sleep: "睡眠", social: "社交", finance: "财务", exercise: "运动" }
+        en: { study: "Study", sleep: "Sleep", social: "Social", finance: "Finance", exercise: "Exercise" },
+        vi: { study: "Học tập", sleep: "Giấc ngủ", social: "Xã hội", finance: "Tài chính", exercise: "Thể chất" },
+        fr: { study: "Études", sleep: "Sommeil", social: "Social", finance: "Finance", exercise: "Exercice" },
+        de: { study: "Studium", sleep: "Schlaf", social: "Soziales", finance: "Finanzen", exercise: "Sport" },
+        zh: { study: "学习", sleep: "睡眠", social: "社交", finance: "财务", exercise: "运动" }
       };
       return radMap[language]?.[cat] || radMap.en[cat];
     };
@@ -1610,15 +1672,15 @@ export default function App() {
 
   // Map from backend i18n_key to frontend translation key pairs
   const backendI18nMap: Record<string, { titleKey: string; descKey: string }> = {
-    highStress:  { titleKey: 'results.actionCards.highStressTitle', descKey: 'results.actionCards.highStressDesc' },
-    sleep:       { titleKey: 'results.actionCards.sleepTitle',      descKey: 'results.actionCards.sleepDesc' },
-    studyLoad:   { titleKey: 'results.actionCards.studyLoadTitle',  descKey: 'results.actionCards.studyLoadDesc' },
-    anxiety:     { titleKey: 'results.actionCards.anxietyTitle',    descKey: 'results.actionCards.anxietyDesc' },
-    mood:        { titleKey: 'results.actionCards.moodTitle',       descKey: 'results.actionCards.moodDesc' },
-    support:     { titleKey: 'results.actionCards.supportTitle',    descKey: 'results.actionCards.supportDesc' },
-    bullying:    { titleKey: 'results.actionCards.bullyingTitle',   descKey: 'results.actionCards.bullyingDesc' },
-    needs:       { titleKey: 'results.actionCards.needsTitle',      descKey: 'results.actionCards.needsDesc' },
-    weekPlan:    { titleKey: 'results.actionCards.weekPlanTitle',   descKey: 'results.actionCards.weekPlanDesc' },
+    highStress: { titleKey: 'results.actionCards.highStressTitle', descKey: 'results.actionCards.highStressDesc' },
+    sleep: { titleKey: 'results.actionCards.sleepTitle', descKey: 'results.actionCards.sleepDesc' },
+    studyLoad: { titleKey: 'results.actionCards.studyLoadTitle', descKey: 'results.actionCards.studyLoadDesc' },
+    anxiety: { titleKey: 'results.actionCards.anxietyTitle', descKey: 'results.actionCards.anxietyDesc' },
+    mood: { titleKey: 'results.actionCards.moodTitle', descKey: 'results.actionCards.moodDesc' },
+    support: { titleKey: 'results.actionCards.supportTitle', descKey: 'results.actionCards.supportDesc' },
+    bullying: { titleKey: 'results.actionCards.bullyingTitle', descKey: 'results.actionCards.bullyingDesc' },
+    needs: { titleKey: 'results.actionCards.needsTitle', descKey: 'results.actionCards.needsDesc' },
+    weekPlan: { titleKey: 'results.actionCards.weekPlanTitle', descKey: 'results.actionCards.weekPlanDesc' },
   };
 
   const actionCards: ActionCardItem[] = aiResult
@@ -1681,7 +1743,7 @@ export default function App() {
               {!isSurveyOpen && (
                 <nav className={`hidden md:flex items-center gap-6 text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-800'}`}>
                   <a href="#solutions" className={`transition-colors ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-slate-900 hover:text-blue-700'}`}>{t('nav.solutions')}</a>
-                  <a href="#technology" className={`transition-colors ${isDarkMode ? 'hover:text-white' : 'hover:text-blue-700'}`}>{t('nav.technology')}</a>
+                  <button onClick={() => setShowTechnologyModal(true)} className={`transition-colors ${isDarkMode ? 'hover:text-white' : 'hover:text-blue-700'}`}>{t('nav.technology')}</button>
                 </nav>
               )}
             </div>
@@ -1877,6 +1939,7 @@ export default function App() {
         {showPrivacyModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowPrivacyModal(false)}>
             <motion.div
+              key={language}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border-white/10' : 'bg-white/95 border border-gray-200'}`}
               onClick={e => e.stopPropagation()}
@@ -1924,6 +1987,7 @@ export default function App() {
         {showEthicsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={() => setShowEthicsModal(false)}>
             <motion.div
+              key={language}
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
               className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden p-8 md:p-10 max-w-2xl w-full text-left max-h-[85vh] overflow-y-auto ${isDarkMode ? 'bg-[#0b132b]/95 border-white/10' : 'bg-white/95 border border-gray-200'}`}
               onClick={e => e.stopPropagation()}
@@ -1963,6 +2027,108 @@ export default function App() {
                 {t('legal.close')}
               </button>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Technology Modal */}
+      <AnimatePresence>
+        {showTechnologyModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-md" onClick={() => setShowTechnologyModal(false)}>
+            <div className="flex items-center justify-center min-h-screen p-4">
+              <motion.div
+                key={language}
+                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                className={`relative backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2rem] overflow-hidden w-full max-w-2xl max-h-[90vh] flex flex-col ${isDarkMode ? 'bg-[#0b132b]/95 border-white/10' : 'bg-white/95 border border-gray-200'}`}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Fixed Header */}
+                <div className={`sticky top-0 z-10 flex items-center justify-between px-8 py-6 border-b backdrop-blur-3xl ${isDarkMode ? 'border-white/10 bg-[#0b132b]/80' : 'border-gray-200 bg-white/80'}`}>
+                  <h2 className={`text-2xl font-bold flex-1 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('techModal.title')}</h2>
+                  <button
+                    onClick={() => setShowTechnologyModal(false)}
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-400 hover:bg-white/20 hover:text-white' : 'bg-gray-100 border border-gray-200 text-gray-600 hover:bg-gray-200 hover:text-gray-900'}`}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className={`overflow-y-auto flex-1 px-8 py-6 space-y-8 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {/* Main Question & Intro */}
+                  <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-gray-50 border border-gray-200'}`}>
+                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                      {t('techModal.question')}
+                    </h3>
+                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t('techModal.intro')}
+                    </p>
+                  </div>
+
+                  {/* Three Core Pillars */}
+                  <div>
+                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {t('techModal.pillars')}
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {/* Pillar 1 */}
+                      <div className={`p-5 rounded-xl border transition-all ${isDarkMode ? 'bg-gray-800/50 border-gray-700/50 hover:border-gray-600/50' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
+                        <h4 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                          <span className="w-2 h-2 rounded-full bg-gray-400" />
+                          {t('techModal.pillar1Title')}
+                        </h4>
+                        <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {t('techModal.pillar1Text')}
+                        </p>
+                      </div>
+
+                      {/* Pillar 2 */}
+                      <div className={`p-5 rounded-xl border transition-all ${isDarkMode ? 'bg-gray-800/50 border-gray-700/50 hover:border-gray-600/50' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
+                        <h4 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                          <span className="w-2 h-2 rounded-full bg-gray-400" />
+                          {t('techModal.pillar2Title')}
+                        </h4>
+                        <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {t('techModal.pillar2Text')}
+                        </p>
+                      </div>
+
+                      {/* Pillar 3 */}
+                      <div className={`p-5 rounded-xl border transition-all ${isDarkMode ? 'bg-gray-800/50 border-gray-700/50 hover:border-gray-600/50' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}>
+                        <h4 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                          <span className="w-2 h-2 rounded-full bg-gray-400" />
+                          {t('techModal.pillar3Title')}
+                        </h4>
+                        <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {t('techModal.pillar3Text')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Operation Principles */}
+                  <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-gray-50 border border-gray-200'}`}>
+                    <h3 className={`font-bold mb-4 text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                      {t('techModal.operationTitle')}
+                    </h3>
+                    <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t('techModal.operationText')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fixed Footer */}
+                <div className={`sticky bottom-0 z-10 px-8 py-4 border-t backdrop-blur-3xl ${isDarkMode ? 'border-white/10 bg-[#0b132b]/80' : 'border-gray-200 bg-white/80'}`}>
+                  <button
+                    onClick={() => setShowTechnologyModal(false)}
+                    className={`w-full py-3 rounded-full font-semibold transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20 hover:text-white' : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200 hover:text-gray-900'}`}
+                  >
+                    {t('techModal.close')}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
@@ -2007,23 +2173,21 @@ export default function App() {
                 /* ========== DARK MODE: centered full-globe layout ========== */
                 <>
                   {/* Earth Background — centered */}
-                  <div className="absolute inset-0 z-[1] flex items-center justify-center pointer-events-none overflow-hidden">
+                  <div className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none overflow-hidden">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8, y: 100 }}
-                      animate={{ opacity: 0.9, scale: 1, y: 0 }}
+                      animate={{ opacity: 0.9, scale: 1, y: -80 }}
                       transition={{ duration: 1.5, ease: "easeOut" }}
-                      style={{ width: '100vw', maxWidth: '1200px', minWidth: '800px', aspectRatio: '1/1' }}
+                      style={{ width: '100vw', maxWidth: '960px', minWidth: '720px', aspectRatio: '1/1' }}
                     >
                       <motion.img
-                        src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2000&auto=format&fit=crop"
+                        src="https://image2url.com/r2/default/images/1775837714078-559555ac-f611-48f2-afde-5968948264e1.png"
                         alt="Earth"
-                        className="w-full h-full object-cover rounded-full grayscale contrast-[1.2] brightness-[0.7]"
+                        className="w-full h-full object-cover rounded-full"
                         style={{
                           maskImage: 'radial-gradient(circle at 50% 50%, black 65%, transparent 70%)',
                           WebkitMaskImage: 'radial-gradient(circle at 50% 50%, black 65%, transparent 70%)'
                         }}
-                        animate={{ rotate: earthRotation }}
-                        transition={{ duration: 2.66, ease: "easeInOut" }}
                       />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-[#0B0F19]/80 to-[#0B0F19] pointer-events-none" />
                     </motion.div>
@@ -2060,7 +2224,7 @@ export default function App() {
                         {t('hero.btnStart')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                       <button onClick={() => setIsHowItWorksOpen(true)}
-                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-slate-800 hover:bg-white/50 transition-all duration-300"
+                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold bg-gray-600 text-gray-100 hover:bg-gray-700 transition-all duration-300"
                       >
                         <Play className="w-4 h-4 fill-current" />
                         {t('hero.btnWatch')}
@@ -2084,39 +2248,50 @@ export default function App() {
                 /* ========== LIGHT MODE: Glassmorphism overlap layout ========== */
                 <div className="relative z-10 container mx-auto px-6 flex flex-col justify-center min-h-screen pt-28 pb-16">
 
-                  {/* Background Globe - Absolute positioned to allow overlapping */}
-                  <div className="absolute top-1/2 right-[-20%] md:right-[-10%] lg:right-[0%] -translate-y-1/2 w-[600px] h-[600px] lg:w-[900px] lg:h-[900px] pointer-events-none z-0">
+                  {/* Background Globe - Absolute positioned behind all content */}
+                  <div className="absolute top-1/2 right-[-20%] md:right-[-10%] lg:right-[0%] -translate-y-1/2 w-[600px] h-[600px] lg:w-[900px] lg:h-[900px] pointer-events-none" style={{ zIndex: -10 }}>
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 1.5, ease: "easeOut" }}
                       className="w-full h-full relative"
-                      style={{
-                        WebkitMaskImage: 'radial-gradient(circle at 50% 50%, black 55%, transparent 80%)',
-                        maskImage: 'radial-gradient(circle at 50% 50%, black 55%, transparent 80%)'
-                      }}
                     >
-                      {/* Inner glow to make it look like pale frosted glass */}
-                      <div className="absolute inset-0 rounded-full" style={{
-                        background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 45%, transparent 75%)',
-                        zIndex: 10
-                      }} />
                       <motion.div
-                        className="w-full h-full rounded-full"
+                        className="w-full h-full"
                         style={{
-                          backgroundImage: 'url(https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png)',
+                          backgroundImage: 'url(https://image2url.com/r2/default/images/1775833042260-9b4ddd91-fea4-4bd9-acfb-ee4c62c41c64.png)',
                           backgroundSize: '100%',
                           backgroundPosition: 'center',
                           backgroundRepeat: 'no-repeat',
-                          /* Soft, bright, blurry globe filter */
-                          filter: 'brightness(1.8) contrast(0.85) grayscale(0.2) saturate(0.9) blur(1.5px) opacity(0.9)',
-                          mixBlendMode: 'luminosity'
+                          opacity: 0.9
                         }}
-                        animate={{ rotate: earthRotation }}
-                        transition={{ duration: 2.66, ease: "easeInOut" }}
                       />
-                      {/* Deep internal shadow to give 3D volume with very soft edges */}
-                      <div className="absolute inset-0 rounded-full shadow-[inset_-20px_-20px_80px_rgba(200,220,255,0.3),inset_30px_30px_80px_rgba(255,255,255,0.8)] z-20 pointer-events-none" />
+                      {/* Falling flowers */}
+                      {[...Array(8)].map((_, i) => (
+                        <motion.div
+                          key={`flower-${i}`}
+                          className="absolute rounded-full"
+                          style={{
+                            width: `${Math.random() * 12 + 8}px`,
+                            height: `${Math.random() * 12 + 8}px`,
+                            backgroundColor: `rgba(255, 235, 59, ${Math.random() * 0.5 + 0.5})`,
+                            left: `${Math.random() * 100}%`,
+                            top: '-20px',
+                            boxShadow: `0 0 ${Math.random() * 8 + 4}px rgba(255, 235, 59, ${Math.random() * 0.5 + 0.4})`
+                          }}
+                          animate={{
+                            y: ['-20px', '600px'],
+                            x: [`${Math.random() * 100 - 50}px`, `${Math.random() * 100 - 50}px`],
+                            opacity: [0, 0.95, 0]
+                          }}
+                          transition={{
+                            duration: Math.random() * 6 + 8,
+                            repeat: Infinity,
+                            delay: Math.random() * 5,
+                            ease: "easeInOut"
+                          }}
+                        />
+                      ))}
                     </motion.div>
                   </div>
 
@@ -2238,79 +2413,6 @@ export default function App() {
                     <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
                       {t('solutions.card3Text')}
                     </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Technology Section */}
-            <section id="technology" className={`py-24 transition-colors duration-700 ${isDarkMode ? 'bg-[#030712]' : 'bg-gradient-to-br from-slate-800 via-slate-900 to-blue-950'} text-white`}>
-              <div className="container mx-auto px-6">
-                <div className="max-w-4xl mx-auto">
-                  <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 bg-blue-900/50 text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold mb-6 border border-blue-800/50">
-                      <Activity className="w-4 h-4" />
-                      {t('tech.badge')}
-                    </div>
-                    <h2 className="text-3xl lg:text-4xl font-bold mb-6">{t('tech.title')}</h2>
-                    <p className="text-gray-400 text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: t('tech.subtitle').replace('XGBoost', '<b>XGBoost</b>').replace('20 điểm dữ liệu', '<b>20 điểm dữ liệu</b>').replace('20 data points', '<b>20 data points</b>') }} />
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className="space-y-8">
-                      <div className="flex gap-4">
-                        <div className="w-14 h-14 bg-blue-900/50 text-blue-400 rounded-2xl flex items-center justify-center shrink-0 border border-blue-800/50">
-                          <Activity className="w-7 h-7" />
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold mb-2">{t('tech.point1Title')}</h4>
-                          <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point1Text')}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div className="w-14 h-14 bg-green-900/50 text-green-400 rounded-2xl flex items-center justify-center shrink-0 border border-green-800/50">
-                          <CheckCircle2 className="w-7 h-7" />
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold mb-2">{t('tech.point2Title')}</h4>
-                          <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point2Text')}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div className="w-14 h-14 bg-purple-900/50 text-purple-400 rounded-2xl flex items-center justify-center shrink-0 border border-purple-800/50">
-                          <Brain className="w-7 h-7" />
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold mb-2">{t('tech.point3Title')}</h4>
-                          <p className="text-gray-400 leading-relaxed text-sm">{t('tech.point3Text')}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#111827] rounded-[2rem] p-8 border border-gray-800 relative shadow-2xl">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-[2rem] pointer-events-none"></div>
-                      <h4 className="text-lg font-bold text-white mb-6 text-center relative z-10 flex items-center justify-center gap-2">
-                        <Lock className="w-4 h-4 text-blue-400" />
-                        {t('tech.modelTitle')}
-                      </h4>
-                      <div className="space-y-4 relative z-10">
-                        <div className="bg-gray-900 p-5 rounded-xl text-sm font-mono text-gray-300 border border-gray-800">
-                          <span className="text-blue-400">model</span> = XGBClassifier(<br />
-                          &nbsp;&nbsp;n_estimators=<span className="text-orange-400">200</span>,<br />
-                          &nbsp;&nbsp;learning_rate=<span className="text-orange-400">0.05</span>,<br />
-                          &nbsp;&nbsp;max_depth=<span className="text-orange-400">6</span>,<br />
-                          &nbsp;&nbsp;objective=<span className="text-green-400">'multi:softprob'</span><br />
-                          )<br />
-                          <span className="block mt-4 text-gray-500 italic">/* {t('ui.predictionOutput')}: LOW, MEDIUM, HIGH */</span>
-                        </div>
-                        <div className="bg-gray-900 p-4 rounded-xl text-sm font-mono text-gray-300 border border-gray-800 flex items-center justify-between">
-                          <span>{t('tech.modelAcc')}</span>
-                          <span className="bg-green-900/80 text-green-400 px-2 py-1 rounded text-sm border border-green-800">92.4%</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -2730,4 +2832,3 @@ export default function App() {
     </div>
   );
 }
-
