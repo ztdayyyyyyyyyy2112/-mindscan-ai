@@ -190,9 +190,9 @@ type ActionCardItem = {
 const LiquidButton = ({ children, onClick, variant = 'primary', className = "", icon: Icon }: any) => {
   const baseStyle = "relative overflow-hidden rounded-full font-semibold px-8 py-4 transition-all duration-300 flex items-center justify-center gap-2 group";
   const variants = {
-    primary: "bg-white/30 dark:bg-blue-600/30 backdrop-blur-2xl text-blue-700 dark:text-blue-300 border border-white/50 dark:border-blue-500/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-blue-900/40 hover:bg-white/40 dark:hover:bg-blue-600/50 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,1)] hover:-translate-y-0.5",
-    secondary: "bg-black/5 dark:bg-white/5 backdrop-blur-2xl text-slate-800 dark:text-slate-200 border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.5)] dark:shadow-slate-900/40 hover:bg-black/10 dark:hover:bg-white/10 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.6)] hover:-translate-y-0.5",
-    outline: "bg-transparent border-2 border-slate-300/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-white/20 dark:hover:bg-white/5"
+    primary: "bg-blue-600 dark:bg-blue-500 backdrop-blur-2xl text-white border border-blue-500/50 shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 hover:-translate-y-0.5",
+    secondary: "bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-2xl text-slate-900 dark:text-slate-100 border border-slate-300/50 dark:border-slate-700/50 shadow-md hover:bg-slate-300/80 dark:hover:bg-slate-700/80 hover:-translate-y-0.5",
+    outline: "bg-transparent border-2 border-slate-300/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
   };
 
   return (
@@ -570,23 +570,23 @@ export default function App() {
   const renderConsentScreen = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-      className={`relative backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl w-full mx-auto text-left ${isDarkMode ? 'bg-[#0b132b]/95 border border-white/10 text-white' : 'bg-white/20 border border-white/40'}`}
+      className="relative backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl w-full mx-auto text-left bg-white/20 border border-white/40 text-slate-900 dark:bg-[#0b132b]/95 dark:border-white/10 dark:text-white"
     >
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 dark:bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
-      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 ${isDarkMode ? 'bg-gradient-to-br from-blue-900/50 to-teal-900/50 text-blue-400 border-white/10' : 'bg-gradient-to-br from-blue-100 to-teal-100 text-blue-600 border-white'}`}>
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 bg-gradient-to-br from-blue-100 to-teal-100 text-blue-600 border-white dark:from-blue-900/50 dark:to-teal-900/50 dark:text-blue-400 dark:border-white/10">
         <ShieldCheck className="w-8 h-8" />
       </div>
-      <h2 className={`text-3xl font-extrabold mb-6 tracking-tight relative z-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.title')}</h2>
+      <h2 className="text-3xl font-extrabold mb-6 tracking-tight relative z-10 text-slate-900 dark:text-white">{t('consent.title')}</h2>
 
-      <div className={`space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+      <div className="space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar text-slate-600 dark:text-gray-300">
         <p>{t('consent.welcome')}</p>
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h1')}</h3>
+        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h1')}</h3>
         <p>{t('consent.p1')}</p>
 
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h2')}</h3>
+        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h2')}</h3>
         <p>{t('consent.p2')}</p>
 
-        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h3')}</h3>
+        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h3')}</h3>
         <p>{t('consent.p3')}</p>
       </div>
 
@@ -1616,7 +1616,7 @@ export default function App() {
     : [];
 
   return (
-    <div className={`min-h-screen font-sans text-[#0b132b] relative overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'dark bg-gradient-to-br from-[#020510] via-[#0a0f1e] to-[#0d1b3e]' : 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100'}`}>
+    <div className={`min-h-screen font-sans text-slate-900 dark:text-slate-100 relative overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'dark bg-gradient-to-br from-[#020510] via-[#0a0f1e] to-[#0d1b3e]' : 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100'}`}>
       {/* Liquid Glass Background Blobs */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {isDarkMode ? (
@@ -1683,101 +1683,102 @@ export default function App() {
             )}
 
             <div className="flex items-center gap-3">
+              {/* Premium Dark / Light Mode Toggle */}
+              <motion.div
+                className="relative hidden sm:flex w-[130px] h-[43px] rounded-full border-2 border-white/60 cursor-pointer overflow-hidden items-center shrink-0 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_2px_4px_4px_2px_rgba(2,1,68,0.5),inset_-2px_-2px_2px_rgba(1,0,89,0.5)]"
+                animate={{ backgroundColor: isDarkMode ? '#0f172a' : '#236fe9' }}
+                transition={{ duration: 0.5 }}
+                onClick={() => setIsDarkMode(prev => !prev)}
+                aria-label={t('ui.toggleDarkMode')}
+              >
+                {/* Stars Lottie (dark mode) */}
+                <motion.div
+                  className="absolute left-0 top-0 w-full h-full pointer-events-none z-0"
+                  animate={{ opacity: isDarkMode ? 1 : 0, y: isDarkMode ? 0 : 20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Player autoplay style={{ width: '100%', height: '100%' }} loop src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab4d8da4bb319001bbe_stars.json" />
+                </motion.div>
+                {/* Clouds Lottie base (light mode) */}
+                <motion.div
+                  className="absolute pointer-events-none z-0"
+                  style={{ width: '140%', height: '200%', left: '-20%', top: '-50%' }}
+                  animate={{ opacity: isDarkMode ? 0 : 0.9 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Player autoplay speed={1.5} style={{ width: '100%', height: '100%' }} loop src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab50719867ec6c32ff9_clouds.json" />
+                </motion.div>
+                {/* Static Clouds (light mode) */}
+                <motion.div
+                  className="absolute bottom-[-20px] left-[-20%] w-[140%] h-[110px] flex flex-col items-center justify-end pointer-events-none z-0"
+                  animate={{ y: isDarkMode ? 60 : 0, opacity: isDarkMode ? 0 : 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <motion.img
+                    src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed6_Vectors-Wrapper.svg"
+                    className="w-[180px] h-[66px] object-cover absolute bottom-[-8px]"
+                    animate={{ x: [-10, 10, -10] }}
+                    transition={{ repeat: Infinity, duration: 5.33, ease: 'easeInOut' }}
+                    alt=""
+                  />
+                  <motion.img
+                    src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed5_Vectors-Wrapper.svg"
+                    className="w-[180px] h-[66px] object-cover absolute bottom-[8px]"
+                    animate={{ x: [10, -10, 10] }}
+                    transition={{ repeat: Infinity, duration: 6.67, ease: 'easeInOut' }}
+                    alt=""
+                  />
+                </motion.div>
+                {/* Ripple rings */}
+                <motion.div
+                  className="absolute pointer-events-none z-0"
+                  style={{ left: '22px', top: '50%' }}
+                  animate={{ x: isDarkMode ? 88 : 0 }}
+                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                >
+                  <div className="absolute w-[70px] h-[70px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                  <div className="absolute w-[110px] h-[110px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                  <div className="absolute w-[150px] h-[150px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
+                </motion.div>
+                {/* Glow (moves with thumb) */}
+                <motion.div
+                  className="absolute flex items-center justify-center mix-blend-screen pointer-events-none z-0"
+                  style={{ left: '-50px', top: '50%', transform: 'translateY(-50%)' }}
+                  animate={{ x: isDarkMode ? 88 : 0 }}
+                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                >
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed3_Vectors-Wrapper.svg" className="absolute w-[85px] h-[85px] object-cover" animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} alt="" />
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed2_Vectors-Wrapper.svg" className="absolute w-[114px] h-[114px] object-cover" animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} alt="" />
+                  <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed4_Vectors-Wrapper.svg" className="absolute w-[142px] h-[142px] object-cover" animate={{ scale: [1, 1.02, 1], opacity: [0.4, 0.6, 0.4] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }} alt="" />
+                </motion.div>
+                {/* Thumb: Sun / Moon */}
+                <div className="absolute inset-0 flex items-center px-[8px] pointer-events-none z-10">
+                  <motion.div
+                    className="relative w-[29px] h-[29px] rounded-full flex items-center justify-center"
+                    animate={{ x: isDarkMode ? 88 : 0, rotate: isDarkMode ? 360 : 0 }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                  >
+                    <motion.img
+                      src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed0_Vectors-Wrapper.svg"
+                      className="absolute w-[29px] h-[29px] rounded-full shadow-[4px_8px_6px_rgba(0,0,0,0.2)]"
+                      animate={{ opacity: isDarkMode ? 0 : 1, scale: isDarkMode ? 0.5 : 1 }}
+                      transition={{ duration: 0.3 }}
+                      alt="Sun"
+                    />
+                    <motion.img
+                      src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed1_Vectors-Wrapper.svg"
+                      className="absolute w-[29px] h-[29px] rounded-full"
+                      animate={{ opacity: isDarkMode ? 1 : 0, scale: isDarkMode ? 1 : 0.5 }}
+                      transition={{ duration: 0.3 }}
+                      alt="Moon"
+                    />
+                  </motion.div>
+                </div>
+              </motion.div>
+
               {!isSurveyOpen && (
                 <>
-                  {/* Premium Dark / Light Mode Toggle */}
-                  <motion.div
-                    className="relative w-[130px] h-[43px] rounded-full border-2 border-white/60 cursor-pointer overflow-hidden flex items-center shrink-0 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_2px_4px_4px_2px_rgba(2,1,68,0.5),inset_-2px_-2px_2px_rgba(1,0,89,0.5)]"
-                    animate={{ backgroundColor: isDarkMode ? '#0f172a' : '#236fe9' }}
-                    transition={{ duration: 0.5 }}
-                    onClick={() => setIsDarkMode(prev => !prev)}
-                    aria-label={t('ui.toggleDarkMode')}
-                  >
-                    {/* Stars Lottie (dark mode) */}
-                    <motion.div
-                      className="absolute left-0 top-0 w-full h-full pointer-events-none z-0"
-                      animate={{ opacity: isDarkMode ? 1 : 0, y: isDarkMode ? 0 : 20 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Player autoplay loop src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab4d8da4bb319001bbe_stars.json" style={{ width: '100%', height: '100%' }} />
-                    </motion.div>
-                    {/* Clouds Lottie base (light mode) */}
-                    <motion.div
-                      className="absolute pointer-events-none z-0"
-                      style={{ width: '140%', height: '200%', left: '-20%', top: '-50%' }}
-                      animate={{ opacity: isDarkMode ? 0 : 0.9 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Player autoplay loop speed={1.5} src="https://cdn.prod.website-files.com/6485b1e6f5eb4dc9ec89e560/6485bab50719867ec6c32ff9_clouds.json" style={{ width: '100%', height: '100%' }} />
-                    </motion.div>
-                    {/* Static Clouds (light mode) */}
-                    <motion.div
-                      className="absolute bottom-[-20px] left-[-20%] w-[140%] h-[110px] flex flex-col items-center justify-end pointer-events-none z-0"
-                      animate={{ y: isDarkMode ? 60 : 0, opacity: isDarkMode ? 0 : 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <motion.img
-                        src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed6_Vectors-Wrapper.svg"
-                        className="w-[180px] h-[66px] object-cover absolute bottom-[-8px]"
-                        animate={{ x: [-10, 10, -10] }}
-                        transition={{ repeat: Infinity, duration: 5.33, ease: 'easeInOut' }}
-                        alt=""
-                      />
-                      <motion.img
-                        src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed5_Vectors-Wrapper.svg"
-                        className="w-[180px] h-[66px] object-cover absolute bottom-[8px]"
-                        animate={{ x: [10, -10, 10] }}
-                        transition={{ repeat: Infinity, duration: 6.67, ease: 'easeInOut' }}
-                        alt=""
-                      />
-                    </motion.div>
-                    {/* Ripple rings */}
-                    <motion.div
-                      className="absolute pointer-events-none z-0"
-                      style={{ left: '22px', top: '50%' }}
-                      animate={{ x: isDarkMode ? 88 : 0 }}
-                      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-                    >
-                      <div className="absolute w-[70px] h-[70px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
-                      <div className="absolute w-[110px] h-[110px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
-                      <div className="absolute w-[150px] h-[150px] bg-white/10 rounded-full" style={{ transform: 'translate(-50%, -50%)' }} />
-                    </motion.div>
-                    {/* Glow (moves with thumb) */}
-                    <motion.div
-                      className="absolute flex items-center justify-center mix-blend-screen pointer-events-none z-0"
-                      style={{ left: '-50px', top: '50%', transform: 'translateY(-50%)' }}
-                      animate={{ x: isDarkMode ? 88 : 0 }}
-                      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-                    >
-                      <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed3_Vectors-Wrapper.svg" className="absolute w-[85px] h-[85px] object-cover" animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} alt="" />
-                      <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed2_Vectors-Wrapper.svg" className="absolute w-[114px] h-[114px] object-cover" animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} alt="" />
-                      <motion.img src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed4_Vectors-Wrapper.svg" className="absolute w-[142px] h-[142px] object-cover" animate={{ scale: [1, 1.02, 1], opacity: [0.4, 0.6, 0.4] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }} alt="" />
-                    </motion.div>
-                    {/* Thumb: Sun / Moon */}
-                    <div className="absolute inset-0 flex items-center px-[8px] pointer-events-none z-10">
-                      <motion.div
-                        className="relative w-[29px] h-[29px] rounded-full flex items-center justify-center"
-                        animate={{ x: isDarkMode ? 88 : 0, rotate: isDarkMode ? 360 : 0 }}
-                        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-                      >
-                        <motion.img
-                          src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed0_Vectors-Wrapper.svg"
-                          className="absolute w-[29px] h-[29px] rounded-full shadow-[4px_8px_6px_rgba(0,0,0,0.2)]"
-                          animate={{ opacity: isDarkMode ? 0 : 1, scale: isDarkMode ? 0.5 : 1 }}
-                          transition={{ duration: 0.3 }}
-                          alt="Sun"
-                        />
-                        <motion.img
-                          src="https://cdn.prod.website-files.com/69c773b68211f0dc7da25e7a/69c773b78211f0dc7da25ed1_Vectors-Wrapper.svg"
-                          className="absolute w-[29px] h-[29px] rounded-full"
-                          animate={{ opacity: isDarkMode ? 1 : 0, scale: isDarkMode ? 1 : 0.5 }}
-                          transition={{ duration: 0.3 }}
-                          alt="Moon"
-                        />
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                  <a href="#" className={`text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>{t('nav.signIn')}</a>
+                  <a href="#" className={`hidden md:block text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>{t('nav.signIn')}</a>
                   <button
                     onClick={() => setIsSurveyOpen(true)}
                     className={`relative overflow-hidden rounded-full font-semibold px-5 py-2 text-sm transition-all duration-300 flex items-center gap-2 group ${isDarkMode
