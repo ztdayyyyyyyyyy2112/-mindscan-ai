@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   ArrowRight,
   Play,
@@ -48,6 +48,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { analyzeSurveyData, AIRecommendation, featureLabels } from './services/geminiService';
 import { translations } from './translations';
+import { ArticleSection } from './components';
 
 const GaugeChart = ({ level, confidence, t, isDarkMode }: { level: string, confidence: number, t?: (key: string) => string, isDarkMode?: boolean }) => {
   // Arc progress: Low=25%, Medium=55%, High=85% of the arc
@@ -151,12 +152,8 @@ const CustomStackedBar = ({ data, height = 'h-12', showLabels = true }: { data: 
 const ActionCard = ({ title, description, icon: Icon, colorClass, isBookmarked, onBookmark, bookmarkAriaLabel, detailsLabel }: { id: string, title: string, description: string, icon: any, colorClass: string, isBookmarked: boolean, onBookmark: (e: React.MouseEvent) => void, bookmarkAriaLabel: string, detailsLabel: string, key?: string }) => {
   return (
     <div className="analytics-glass-card dark:bg-slate-800/50 border border-white/50 dark:border-white/10 shadow-[0_8px_24px_rgba(45,51,55,0.06)] rounded-[2rem] overflow-hidden p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-2 group">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${colorClass}`}
-        style={{ boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8)' }}>
-        <Icon className="w-5 h-5" />
-      </div>
       <div className="flex-1">
-        <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2"
+        <h4 className="text-base font-bold bg-gradient-to-r from-black to-slate-800 bg-clip-text text-transparent dark:text-slate-100 dark:bg-none mb-2"
           style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{title}</h4>
         <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed line-clamp-4"
           style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
@@ -214,6 +211,7 @@ const LiquidButton = ({ children, onClick, variant = 'primary', className = "", 
 
 export default function App() {
   const [hasConsented, setHasConsented] = useState(false);
+  const [showMotivational, setShowMotivational] = useState(false);
   const [language, setLanguage] = useState<'vi' | 'en' | 'de' | 'zh' | 'fr'>('en');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [isSurveyOpen, setIsSurveyOpen] = useState(false);
@@ -236,7 +234,42 @@ export default function App() {
   const [stepError, setStepError] = useState<string>('');
   const [activeDataModule, setActiveDataModule] = useState<'dashboard' | 'analytics'>('dashboard');
   const [stressTrendPeriod, setStressTrendPeriod] = useState<'weekly' | 'monthly'>('weekly');
-  const [radarAnimated, setRadarAnimated] = useState(false);
+const [radarAnimated, setRadarAnimated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => !!localStorage.getItem('mindscan_currentUser'));
+  const [showLoginConfirm, setShowLoginConfirm] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(() => {
+    const stored = localStorage.getItem('mindscan_currentUser');
+    return stored ? JSON.parse(stored) : null;
+  });
+
+// Modern login handlers
+  const handleShowLoginConfirm = () => {
+    setShowLoginConfirm(true);
+  };
+
+  const handleConfirmLogin = () => {
+const modernLoginUrl = window.location.origin + '/src/Modern-Login-master/index.html';
+    window.open(modernLoginUrl, '_blank', 'noopener,noreferrer');
+    setShowLoginConfirm(false);
+  };
+
+  const handleCancelLogin = () => {
+    setShowLoginConfirm(false);
+  };
+
+  // Sync login state from popup via localStorage events
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'mindscan_currentUser') {
+        const userData = e.newValue ? JSON.parse(e.newValue) : null;
+        setCurrentUser(userData);
+        setIsLoggedIn(!!userData);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const radarRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
 
@@ -343,11 +376,6 @@ export default function App() {
     if (featureLabels[keyObj]) {
       return (featureLabels[keyObj] as any)[language] || keyObj;
     }
-    for (const map of Object.values(featureLabels)) {
-      if (Object.values(map).includes(keyObj)) {
-        return (map as any)[language] || keyObj;
-      }
-    }
     return keyObj;
   };
 
@@ -362,30 +390,30 @@ export default function App() {
     age: '',
     gender: '',
     // Step 1: Academic
-    academic_performance: 3,
-    study_load: 3,
-    teacher_student_relationship: 3,
-    future_career_concerns: 3,
+    academic_performance: 0,
+    study_load: 0,
+    teacher_student_relationship: 0,
+    future_career_concerns: 0,
     // Step 2: Psychological
     anxiety_level: 0,
     depression: 0,
-    self_esteem: 15,
+    self_esteem: 0,
     mental_health_history: 'no',
     // Step 3: Physical
-    blood_pressure: 2,
-    sleep_quality: 3,
+    blood_pressure: 0,
+    sleep_quality: 0,
     headache: 0,
     breathing_problem: 0,
     // Step 4: Social
-    social_support: 1,
+    social_support: 0,
     peer_pressure: 0,
-    extracurricular_activities: 2,
+    extracurricular_activities: 0,
     bullying: 0,
     // Step 5: Environment
     noise_level: 0,
-    living_conditions: 3,
-    safety: 3,
-    basic_needs: 3
+    living_conditions: 0,
+    safety: 0,
+    basic_needs: 0
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -469,12 +497,23 @@ export default function App() {
     return d.toLocaleDateString(localeMap[language] ?? 'en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem('mindscan_currentUser');
+  };
+
   const startSurvey = () => {
     setIsSurveyOpen(true);
   };
 
   const acceptConsent = () => {
-    setHasConsented(true);
+    setShowMotivational(true); // Hiển thị trang motivational
+  };
+
+  const proceedToSurvey = () => {
+    setHasConsented(true); // Đánh dấu đã đọc đầy đủ
+    setShowMotivational(false);
   };
 
   const toggleBookmark = (id: string) => {
@@ -534,19 +573,22 @@ export default function App() {
     return `hsl(${hue}, 84%, 50%)`;
   };
 
-  const CustomSlider = ({ min, max, step, value, onChange, size = 'normal', ariaLabel }: { min: number, max: number, step: number, value: number, onChange: (val: number) => void, size?: 'normal' | 'large', ariaLabel: string }) => {
+  // CustomSlider: showDots = true (default) để hiện dấu chấm, false để ẩn
+  const CustomSlider = ({ min, max, step, value, onChange, size = 'normal', ariaLabel, showDots = true }: { min: number, max: number, step: number, value: number, onChange: (val: number) => void, size?: 'normal' | 'large', ariaLabel: string, showDots?: boolean }) => {
+    const snapPoints = [];
+    for (let i = min; i <= max; i += 1) snapPoints.push(i);
+    const handleChange = (val: number) => {
+      const snapped = Math.round(val);
+      onChange(snapped);
+    };
     const percentage = ((value - min) / (max - min)) * 100;
     const currentColor = getSliderColor(value, min, max);
-
     const heightClass = size === 'large' ? 'h-4' : 'h-2';
     const thumbSizeClass = size === 'large'
       ? '[&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-moz-range-thumb]:w-8 [&::-moz-range-thumb]:h-8'
       : '[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6';
-
-    // Calculate exact pixel offset for the thumb center since the thumb takes up space
-    const thumbOffset = size === 'large' ? 16 : 12; // half width of thumb in px
+    const thumbOffset = size === 'large' ? 16 : 12;
     const offsetPx = thumbOffset - (percentage / 100) * (thumbOffset * 2);
-
     return (
       <div className="relative pt-8 pb-1 w-full group">
         <div
@@ -562,18 +604,20 @@ export default function App() {
             style={{ borderTopColor: currentColor }}
           ></div>
         </div>
+        {/* Dấu chấm tròn các mốc nhỏ nằm đè trên track */}
+
         <input
           type="range"
           min={min}
           max={max}
-          step={step}
+          step={1}
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={(e) => handleChange(Number(e.target.value))}
           aria-label={ariaLabel}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
-          className={`w-full appearance-none bg-transparent rounded-full cursor-grab active:cursor-grabbing ${heightClass} ${thumbSizeClass} focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-[var(--thumb-color)] [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border-4 [&::-moz-range-thumb]:border-[var(--thumb-color)] [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:transition-transform relative z-10`}
+          className={`w-full appearance-none bg-transparent rounded-full cursor-grab active:cursor-grabbing ${heightClass} ${thumbSizeClass} focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-[var(--thumb-color)] [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border-4 [&::-moz-range-thumb]:border-[var(--thumb-color)] [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:transition-transform relative z-20`}
           style={{
             background: `linear-gradient(to right, ${currentColor} ${percentage}%, ${isDarkMode ? '#374151' : '#e5e7eb'} ${percentage}%)`,
             '--thumb-color': currentColor,
@@ -586,23 +630,31 @@ export default function App() {
   const renderConsentScreen = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-      className="relative backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl w-full mx-auto text-left bg-white/20 border border-white/40 text-slate-900 dark:bg-[#0b132b]/95 dark:border-white/10 dark:text-white"
+      className={`relative backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[2rem] overflow-hidden p-8 md:p-12 max-w-3xl w-full mx-auto text-left ${
+        isDarkMode 
+          ? 'bg-slate-900/95 border-slate-700/50 text-white' 
+          : 'bg-white/90 border-white/60 text-slate-900'
+      }`}
     >
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 dark:bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
-      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 bg-gradient-to-br from-blue-100 to-teal-100 text-blue-600 border-white dark:from-blue-900/50 dark:to-teal-900/50 dark:text-blue-400 dark:border-white/10">
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-inner border relative z-10 ${
+        isDarkMode
+          ? 'bg-slate-800/80 border-slate-700 text-blue-400'
+          : 'bg-gradient-to-br from-blue-100 to-teal-100 border-white text-blue-600'
+      }`}>
         <ShieldCheck className="w-8 h-8" />
       </div>
-      <h2 className="text-3xl font-extrabold mb-6 tracking-tight relative z-10 text-slate-900 dark:text-white">{t('consent.title')}</h2>
+      <h2 className={`text-3xl font-extrabold mb-6 tracking-tight relative z-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.title')}</h2>
 
-      <div className="space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar text-slate-600 dark:text-gray-300">
+      <div className={`space-y-4 mb-10 h-64 overflow-y-auto pr-4 font-medium leading-relaxed relative z-10 custom-scrollbar ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}>
         <p>{t('consent.welcome')}</p>
-        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h1')}</h3>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h1')}</h3>
         <p>{t('consent.p1')}</p>
 
-        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h2')}</h3>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h2')}</h3>
         <p>{t('consent.p2')}</p>
 
-        <h3 className="font-bold mt-4 text-slate-900 dark:text-white">{t('consent.h3')}</h3>
+        <h3 className={`font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('consent.h3')}</h3>
         <p>{t('consent.p3')}</p>
       </div>
 
@@ -618,6 +670,71 @@ export default function App() {
         >
           {t('consent.btnAccept')}
         </LiquidButton>
+      </div>
+    </motion.div>
+  );
+
+  const renderMotivationalScreen = () => (
+    <motion.div
+      key={language}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: 'none' }}
+    >
+      {/* Main Content - Centered */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 gap-8 w-full max-w-6xl">
+        {/* Navigation Buttons: fixed to left/right, vertically centered with image */}
+        <div className="w-full flex items-center justify-between relative" style={{ minHeight: '20rem' }}>
+          {/* Previous Button - left edge */}
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            onClick={() => setShowMotivational(false)}
+            aria-label="Previous"
+            className="w-14 h-14 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-blue-600 dark:text-blue-300 shadow transition-all absolute left-0 top-1/2 -translate-y-1/2"
+            style={{ zIndex: 20 }}
+          >
+            <ArrowLeft className="w-7 h-7" />
+          </motion.button>
+          {/* Large Square Image, centered */}
+          <motion.img
+            src="https://image2url.com/r2/default/images/1775840954764-fa156538-0eec-4fa2-9e18-56d177c85d21.png"
+            alt="Gen Z Motivation"
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-80 h-80 rounded-2xl object-cover mx-auto shadow-lg"
+            style={{ background: 'transparent', border: 'none' }}
+          />
+          {/* Next Button - right edge */}
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            onClick={proceedToSurvey}
+            aria-label="Next"
+            className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all absolute right-0 top-1/2 -translate-y-1/2"
+            style={{ zIndex: 20 }}
+          >
+            <ArrowRight className="w-7 h-7" />
+          </motion.button>
+        </div>
+        {/* Wide Speech Bubble Quote */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className={`relative px-12 py-8 rounded-[2.5rem] backdrop-blur-md w-full max-w-5xl ${
+            isDarkMode
+              ? 'bg-slate-800/60 border border-slate-700/50 text-white'
+              : 'bg-white/80 border border-white/60 text-slate-900 shadow-xl'
+          }`}
+        >
+          <p className="text-xl leading-relaxed font-medium text-center" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+            {t('motivational.quote')}
+          </p>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -772,6 +889,8 @@ export default function App() {
     </AnimatePresence>
   );
 
+
+
   const renderEmergencyModal = () => (
     <AnimatePresence>
       {showEmergencyModal && (
@@ -819,10 +938,62 @@ export default function App() {
     </AnimatePresence>
   );
 
+  const renderLoginConfirmModal = () => (
+    <AnimatePresence>
+      {showLoginConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className={`relative backdrop-blur-3xl shadow-2xl rounded-[2rem] p-8 max-w-md w-full text-center ${
+              isDarkMode ? 'bg-slate-900/90 border border-white/10 text-white' : 'bg-white/95 border border-slate-200 text-slate-900'
+            }`}
+          >
+            <h3 className="text-2xl font-bold mb-4">Lợi ích khi Đăng nhập</h3>
+            <div className={`text-left space-y-4 mb-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className="font-medium text-center opacity-90">Đăng nhập để mở khóa các tính năng nâng cao giúp bạn quản lý sức khỏe tốt hơn:</p>
+              <ul className="space-y-4 text-sm">
+                <li className="flex items-start gap-3">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                  <span><strong>Theo dõi lịch sử:</strong> Xem lại lịch sử làm khảo sát và theo dõi biểu đồ xu hướng căng thẳng qua từng mốc thời gian.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                  <span><strong>AI Cá nhân hóa:</strong> Hệ thống ghi nhớ thói quen sinh hoạt để đưa ra gợi ý và lộ trình phục hồi chính xác hơn.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                  <span><strong>Gợi ý thông minh:</strong> Nhận các chỉ dẫn tốt hơn cho các vấn đề tâm lý dựa trên dữ liệu thói quen đã lưu trữ.</span>
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmLogin}
+                className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
+              >
+                Tiếp tục đăng nhập
+              </button>
+              <button
+                onClick={handleCancelLogin}
+                className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                  isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Để sau
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+
   const renderStepContent = () => {
     const questionCardClass = `space-y-4 rounded-[2rem] p-6 border shadow-[0_8px_32px_0_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)] ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white/20 backdrop-blur-3xl border-white/40'}`;
     const questionLabelClass = `block text-base font-bold ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`;
-    const textHintClass = `text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`;
+    const textHintClass = `text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`;
     const inputClass = `w-full p-4 rounded-2xl border-2 focus:outline-none focus:ring-4 transition-all font-medium ${isDarkMode ? 'bg-[#0b132b]/60 border-white/15 text-white focus:border-blue-500 focus:ring-blue-500/20' : 'bg-white/90 border-slate-100 text-slate-700 focus:border-blue-500 focus:ring-blue-500/10'}`;
     const selectClass = `w-full p-4 rounded-2xl border-2 appearance-none focus:outline-none focus:ring-4 transition-all font-medium ${isDarkMode ? 'bg-[#0b132b]/60 border-white/15 text-white focus:border-blue-500 focus:ring-blue-500/20' : 'bg-white/90 border-slate-100 text-slate-700 focus:border-blue-500 focus:ring-blue-500/10'}`;
     const choiceButtonClass = (selected: boolean) => (
@@ -888,17 +1059,17 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className={questionCardClass}>
                 <label className={questionLabelClass}>{t('questions.q7')}</label>
-                <CustomSlider min={0} max={21} step={1} value={formData.anxiety_level} onChange={(v) => handleInputChange('anxiety_level', v)} ariaLabel="Anxiety" />
+                <CustomSlider min={0} max={21} step={1} value={formData.anxiety_level} onChange={(v) => handleInputChange('anxiety_level', v)} ariaLabel="Anxiety" showDots={false} />
                 <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>21</span></div>
               </div>
               <div className={questionCardClass}>
                 <label className={questionLabelClass}>{t('questions.q8')}</label>
-                <CustomSlider min={0} max={27} step={1} value={formData.depression} onChange={(v) => handleInputChange('depression', v)} ariaLabel="Depression" />
+                <CustomSlider min={0} max={27} step={1} value={formData.depression} onChange={(v) => handleInputChange('depression', v)} ariaLabel="Depression" showDots={false} />
                 <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>27</span></div>
               </div>
               <div className={questionCardClass}>
                 <label className={questionLabelClass}>{t('questions.q9')}</label>
-                <CustomSlider min={0} max={30} step={1} value={formData.self_esteem} onChange={(v) => handleInputChange('self_esteem', v)} ariaLabel="Self Esteem" />
+                <CustomSlider min={0} max={30} step={1} value={formData.self_esteem} onChange={(v) => handleInputChange('self_esteem', v)} ariaLabel="Self Esteem" showDots={false} />
                 <div className={`flex justify-between ${textHintClass}`}><span>0</span><span>30</span></div>
               </div>
               <div className={questionCardClass}>
@@ -1200,7 +1371,7 @@ export default function App() {
     const trendData = buildStressTrendData();
     const calendar = buildCalendarData();
     const peerData = buildPeerData();
-    const localeMap = { vi: 'vi-VN', en: 'en-US', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN' } as const;
+    const localeMap: Record<string, string> = { vi: 'vi-VN', en: 'en-US', fr: 'fr-FR', de: 'de-DE', zh: 'zh-CN' };
     const monthName = new Date(calendar.year, calendar.month).toLocaleString(localeMap[language], { month: 'long', year: 'numeric' });
     const dayLabels = [t('ui.calendar.mon'), t('ui.calendar.tue'), t('ui.calendar.wed'), t('ui.calendar.thu'), t('ui.calendar.fri'), t('ui.calendar.sat'), t('ui.calendar.sun')];
     const stressColors = [
@@ -1748,32 +1919,7 @@ export default function App() {
               )}
             </div>
 
-            {isSurveyOpen && isCompleted && aiResult && (
-              <div className="hidden lg:flex items-center gap-3 shrink-0 mx-6">
-                <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                  {t('ui.dataModule')}
-                </div>
-                <div className="relative group">
-                  <select
-                    value={activeDataModule}
-                    onChange={(e) => setActiveDataModule(e.target.value as 'dashboard' | 'analytics')}
-                    className={`appearance-none pl-4 pr-10 py-2 rounded-full text-sm font-semibold border backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400/40 ${isDarkMode
-                      ? 'bg-white/10 text-slate-100 border-white/15 hover:bg-white/15 shadow-[0_8px_24px_rgba(2,6,23,0.35),inset_0_1px_1px_rgba(255,255,255,0.12)]'
-                      : 'bg-white/55 text-slate-700 border-white/70 hover:bg-white/70 shadow-[0_8px_24px_rgba(15,23,42,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]'
-                      }`}
-                    style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                  >
-                    <option value="dashboard">{t('ui.module.dashboard')}</option>
-                    <option value="analytics">{t('ui.module.analytics')}</option>
-                  </select>
-                  <ChevronDown
-                    className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-slate-100' : 'text-slate-500 group-hover:text-slate-700'
-                      }`}
-                  />
-                </div>
-              </div>
-            )}
+
 
             <div className="flex items-center gap-3">
               {/* Premium Dark / Light Mode Toggle */}
@@ -1869,19 +2015,43 @@ export default function App() {
                 </div>
               </motion.div>
 
-              {!isSurveyOpen && (
+{!isSurveyOpen && (
                 <>
-                  <a href="#" className={`hidden md:block text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>{t('nav.signIn')}</a>
-                  <button
-                    onClick={() => setIsSurveyOpen(true)}
-                    className={`relative overflow-hidden rounded-full font-semibold px-5 py-2 text-sm transition-all duration-300 flex items-center gap-2 group ${isDarkMode
-                      ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                      }`}
-                  >
-                    <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                    {t('nav.getStarted')}
-                  </button>
+                  {!isLoggedIn ? (
+                    <>
+                      <button
+                        onClick={handleShowLoginConfirm}
+                        className={`hidden md:block text-sm font-medium transition-colors ${isDarkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                      >
+                        {t('nav.signIn')}
+                      </button>
+                      <button
+                        onClick={() => setIsSurveyOpen(true)}
+                        className={`relative overflow-hidden rounded-full font-semibold px-5 py-2 text-sm transition-all duration-300 flex items-center gap-2 group ${isDarkMode
+                          ? 'bg-blue-600 text-white border border-blue-500 hover:bg-blue-500'
+                          : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                          }`}
+                      >
+                        <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                        {t('nav.getStarted')}
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${isDarkMode ? 'bg-blue-600' : 'bg-blue-600'}`}>
+                        {currentUser?.name?.[0] || 'D'}
+                      </div>
+                      <div className="hidden sm:flex flex-col">
+                        <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{currentUser?.name}</span>
+                        <button
+                          onClick={handleLogout}
+                          className={`text-xs font-semibold transition-colors ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
               {/* Language switcher */}
@@ -1974,7 +2144,8 @@ export default function App() {
               </div>
               <button
                 onClick={() => setShowPrivacyModal(false)}
-                className={`mt-8 w-full py-3 rounded-full font-semibold transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20' : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200'}`}              >
+                className={`mt-8 w-full py-3 rounded-full font-semibold transition-all ${isDarkMode ? 'bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20' : 'bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200'}`}
+              >
                 {t('legal.close')}
               </button>
             </motion.div>
@@ -2134,6 +2305,7 @@ export default function App() {
       </AnimatePresence>
       {renderHowItWorksModal()}
       {renderEmergencyModal()}
+      {renderLoginConfirmModal()}
 
       <AnimatePresence mode="wait">
         {!isSurveyOpen ? (
@@ -2197,7 +2369,7 @@ export default function App() {
                   {/* Dark mode content — centered */}
                   <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-32 pb-80 md:pb-96" style={{ minHeight: '100vh' }}>
                     <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide mb-8 border bg-white/8 border-white/15 text-white/90 backdrop-blur-md"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest mb-8 border bg-white/8 border-white/15 text-white/90 backdrop-blur-md"
                     >
                       <span className="w-2 h-2 rounded-full bg-[#a3e635] shadow-[0_0_8px_#a3e635] animate-pulse" />
                       {t('hero.badge')}
@@ -2224,14 +2396,14 @@ export default function App() {
                         {t('hero.btnStart')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </button>
                       <button onClick={() => setIsHowItWorksOpen(true)}
-                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold bg-gray-600 text-gray-100 hover:bg-gray-700 transition-all duration-300"
+                        className="flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-slate-800 hover:bg-white/50 transition-all duration-300"
                       >
                         <Play className="w-4 h-4 fill-current" />
                         {t('hero.btnWatch')}
                       </button>
                     </motion.div>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
-                      className="flex flex-wrap items-center justify-center gap-6 text-white/50"
+                      className="flex flex-wrap items-center gap-6 text-white/50"
                     >
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="w-5 h-5 text-[#a3e635]" />
@@ -2360,63 +2532,7 @@ export default function App() {
             </section>
 
             {/* Wellness Tools Section */}
-            <section id="solutions" className="py-24 relative z-10">
-              <div className="container mx-auto px-6">
-                <div className="text-center max-w-2xl mx-auto mb-16">
-                  <h2 className={`text-3xl lg:text-4xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.title')}</h2>
-                  <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {t('solutions.subtitle')}
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-8">
-                  {/* Card 1 */}
-                  <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                    ? 'bg-gradient-to-br from-blue-950/60 to-slate-900/60 border-blue-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                    : 'bg-white/75 border-sky-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
-                    }`}>
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-blue-100 text-blue-600 border-blue-200'
-                      }`}>
-                      <BarChart2 className="w-7 h-7" />
-                    </div>
-                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card1Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                      {t('solutions.card1Text')}
-                    </p>
-                  </div>
-
-                  {/* Card 2 */}
-                  <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                    ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900/60 border-emerald-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                    : 'bg-white/75 border-green-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
-                    }`}>
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-green-100 text-green-600 border-green-200'
-                      }`}>
-                      <Leaf className="w-7 h-7" />
-                    </div>
-                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card2Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                      {t('solutions.card2Text')}
-                    </p>
-                  </div>
-
-                  {/* Card 3 */}
-                  <div className={`relative backdrop-blur-3xl border rounded-[2rem] overflow-hidden p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${isDarkMode
-                    ? 'bg-gradient-to-br from-purple-950/60 to-slate-900/60 border-purple-900/30 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                    : 'bg-white/75 border-purple-100/80 shadow-lg hover:shadow-xl hover:bg-white/90'
-                    }`}>
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${isDarkMode ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-purple-100 text-purple-600 border-purple-200'
-                      }`}>
-                      <HeartHandshake className="w-7 h-7" />
-                    </div>
-                    <h3 className={`text-xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-[#0b132b]'}`}>{t('solutions.card3Title')}</h3>
-                    <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                      {t('solutions.card3Text')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <ArticleSection language={language} />
 
             {/* Footer */}
             <footer className={`border-t pt-12 pb-8 relative z-10 transition-colors duration-500 ${isDarkMode
@@ -2448,7 +2564,7 @@ export default function App() {
               </div>
             </footer>
           </motion.div>
-        ) : !hasConsented ? (
+        ) : !hasConsented && !showMotivational ? (
           <motion.div
             key="consent"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -2456,6 +2572,15 @@ export default function App() {
             className="container mx-auto px-6 min-h-[100dvh] flex flex-col items-center justify-center py-24"
           >
             {renderConsentScreen()}
+          </motion.div>
+        ) : !hasConsented && showMotivational ? (
+          <motion.div
+            key="motivational"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="container mx-auto px-6 min-h-[100dvh] flex flex-col items-center justify-center py-24"
+          >
+            {renderMotivationalScreen()}
           </motion.div>
         ) : (
           <motion.div
@@ -2532,26 +2657,207 @@ export default function App() {
                     <p className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>{t('survey.analyzingDesc')}</p>
                   </div>
                 ) : aiResult ? (
-                  <div className="text-left w-full max-w-[1320px] mx-auto analytics-liquid-bg rounded-[2.5rem] p-4 md:p-6">
-                    <section className={`rounded-[2.75rem] p-6 md:p-8 xl:p-10 shadow-[0_24px_90px_rgba(45,51,55,0.06)] ${isDarkMode ? 'bg-slate-900/40 border border-white/10' : ''} lg:min-h-[640px]`}>
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-                        <div className="lg:col-span-12 flex flex-col gap-8">
-                          {activeDataModule === 'analytics' ? (
-                            renderDashboardView()
-                          ) : (
-                            <><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="relative w-full">
+                    {/* TOP LEFT - Back to Dashboard */}
+                    <motion.button
+                      onClick={() => setActiveDataModule('dashboard')}
+                      className={`hidden lg:flex absolute -left-7 top-8 z-50 w-14 h-14 rounded-full items-center justify-center font-bold text-2xl shadow-lg leading-none pointer-events-auto ${
+                        activeDataModule === 'dashboard'
+                          ? (isDarkMode ? 'bg-white/30 text-white border border-white/60' : 'bg-white/30 text-slate-900 border border-white/60')
+                          : (isDarkMode ? 'bg-white/15 text-slate-300 hover:bg-white/25 border border-white/30' : 'bg-white/15 text-slate-600 hover:bg-white/25 border border-white/30')
+                      }`}
+                      whileHover={{ scale: 1.1, x: 5 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{ WebkitFontSmoothing: 'antialiased' }}
+                      title={t('ui.backToDashboard')}
+                    >
+                      &lt;
+                    </motion.button>
+
+                    {/* TOP RIGHT - Go to Analytics */}
+                    <motion.button
+                      onClick={() => setActiveDataModule('analytics')}
+                      className={`hidden lg:flex absolute -right-7 top-8 z-50 w-14 h-14 rounded-full items-center justify-center font-bold text-2xl shadow-lg leading-none pointer-events-auto ${
+                        activeDataModule === 'analytics'
+                          ? (isDarkMode ? 'bg-white/30 text-white border border-white/60' : 'bg-white/30 text-slate-900 border border-white/60')
+                          : (isDarkMode ? 'bg-white/15 text-slate-300 hover:bg-white/25 border border-white/30' : 'bg-white/15 text-slate-600 hover:bg-white/25 border border-white/30')
+                      }`}
+                      whileHover={{ scale: 1.1, x: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{ WebkitFontSmoothing: 'antialiased' }}
+                      title={t('ui.toAnalytics')}
+                    >
+                      &gt;
+                    </motion.button>
+
+                    {/* BOTTOM LEFT - Back to Dashboard */}
+                    <motion.button
+                      onClick={() => setActiveDataModule('dashboard')}
+                      className={`hidden lg:flex absolute left-4 bottom-8 z-50 w-14 h-14 rounded-full items-center justify-center font-bold text-2xl shadow-lg leading-none pointer-events-auto ${
+                        activeDataModule === 'dashboard'
+                          ? (isDarkMode ? 'bg-white/30 text-white border border-white/60' : 'bg-white/30 text-slate-900 border border-white/60')
+                          : (isDarkMode ? 'bg-white/15 text-slate-300 hover:bg-white/25 border border-white/30' : 'bg-white/15 text-slate-600 hover:bg-white/25 border border-white/30')
+                      }`}
+                      whileHover={{ scale: 1.1, x: 5 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{ WebkitFontSmoothing: 'antialiased' }}
+                      title={t('ui.backToDashboard')}
+                    >
+                      &lt;
+                    </motion.button>
+
+                    {/* BOTTOM RIGHT - Go to Analytics */}
+                    <motion.button
+                      onClick={() => setActiveDataModule('analytics')}
+                      className={`hidden lg:flex absolute right-4 bottom-8 z-50 w-14 h-14 rounded-full items-center justify-center font-bold text-2xl shadow-lg leading-none pointer-events-auto ${
+                        activeDataModule === 'analytics'
+                          ? (isDarkMode ? 'bg-white/30 text-white border border-white/60' : 'bg-white/30 text-slate-900 border border-white/60')
+                          : (isDarkMode ? 'bg-white/15 text-slate-300 hover:bg-white/25 border border-white/30' : 'bg-white/15 text-slate-600 hover:bg-white/25 border border-white/30')
+                      }`}
+                      whileHover={{ scale: 1.1, x: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{ WebkitFontSmoothing: 'antialiased' }}
+                      title={t('ui.toAnalytics')}
+                    >
+                      &gt;
+                    </motion.button>
+
+                    {/* Dashboard View */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={activeDataModule === 'dashboard' ? { opacity: 1 } : { opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      style={{
+                        pointerEvents: activeDataModule === 'dashboard' ? 'auto' : 'none',
+                        display: activeDataModule === 'dashboard' ? 'block' : 'none'
+                      }}
+                      className="w-full"
+                    >
+                    <div className="text-left w-full max-w-[1320px] mx-auto" style={{
+                      background: isDarkMode ? 'linear-gradient(135deg, rgba(15,23,42,0.4) 0%, rgba(30,41,59,0.4) 100%)' : 'linear-gradient(135deg, rgba(248,249,250,0.8) 0%, rgba(240,244,248,0.8) 100%)'
+                    }}>
+                      {/* Medical Report Style */}
+                      <div className={`relative rounded-[2.5rem] p-6 md:p-8 xl:p-10 shadow-[0_24px_90px_rgba(45,51,55,0.06)] ${isDarkMode ? 'bg-slate-900/40 border border-white/10' : 'bg-white/95 border border-slate-100'}`}>
+                          {/* Binding holes on the left */}
+                          <div className="absolute left-8 top-0 bottom-0 w-1 flex flex-col items-center justify-around pointer-events-none">
+                            {[...Array(8)].map((_, i) => (
+                              <motion.div
+                                key={`hole-${i}`}
+                                className="w-3 h-3 rounded-full border-2"
+                                style={{
+                                  borderColor: isDarkMode ? 'rgba(100,116,139,0.5)' : 'rgba(71,85,105,0.4)',
+                                  boxShadow: isDarkMode
+                                    ? 'inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(255,255,255,0.1)'
+                                    : 'inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(255,255,255,0.8)'
+                                }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Medical Report Header */}
+                          <div className={`mb-8 pb-6 border-b-2 pl-8 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                            <div className="flex items-start justify-between gap-4 mb-4">
                               <div>
                                 <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
-                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>{t('ui.resultsPanel.title')}</h2>
-                                <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}
-                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>{t('ui.resultsPanel.subtitle')}</p>
+                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+                                  {t('ui.resultsPanel.title')}
+                                </h2>
+                                <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}
+                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                  {t('ui.resultsPanel.subtitle')}
+                                </p>
                               </div>
-                              <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-600/10 text-teal-700'}`}
-                                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                              <motion.div
+                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30' : 'bg-teal-600/10 text-teal-700 border border-teal-200'}`}
+                                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
                                 <Activity className="w-4 h-4" /> {t('ui.resultsPanel.last30Days')}
-                              </div>
+                              </motion.div>
                             </div>
+                          </div>
 
+                          {/* Content Area */}
+                          <div className="pl-8">
+                            <section className={`rounded-[2rem] p-6 md:p-8 xl:p-10 ${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/50'}`}>
+                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                                <div className="lg:col-span-12 flex flex-col gap-8">
+                                  {renderDashboardView()}
+                                </div>
+                              </div>
+                            </section>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Analytics View */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={activeDataModule === 'analytics' ? { opacity: 1 } : { opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      style={{
+                        pointerEvents: activeDataModule === 'analytics' ? 'auto' : 'none',
+                        display: activeDataModule === 'analytics' ? 'block' : 'none'
+                      }}
+                      className="w-full"
+                    >
+                    <div className="text-left w-full max-w-[1320px] mx-auto" style={{
+                      background: isDarkMode ? 'linear-gradient(135deg, rgba(15,23,42,0.4) 0%, rgba(30,41,59,0.4) 100%)' : 'linear-gradient(135deg, rgba(248,249,250,0.8) 0%, rgba(240,244,248,0.8) 100%)'
+                    }}>
+                      <div className={`relative rounded-[2.5rem] p-6 md:p-8 xl:p-10 shadow-[0_24px_90px_rgba(45,51,55,0.06)] ${isDarkMode ? 'bg-slate-900/40 border border-white/10' : 'bg-white/95 border border-slate-100'}`}>
+                          {/* Binding holes on the left */}
+                          <div className="absolute left-8 top-0 bottom-0 w-1 flex flex-col items-center justify-around pointer-events-none">
+                            {[...Array(8)].map((_, i) => (
+                              <motion.div
+                                key={`hole-analytics-${i}`}
+                                className="w-3 h-3 rounded-full border-2"
+                                style={{
+                                  borderColor: isDarkMode ? 'rgba(100,116,139,0.5)' : 'rgba(71,85,105,0.4)',
+                                  boxShadow: isDarkMode
+                                    ? 'inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(255,255,255,0.1)'
+                                    : 'inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(255,255,255,0.8)'
+                                }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Medical Report Header */}
+                          <div className={`mb-8 pb-6 border-b-2 pl-8 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                              <div>
+                                <h2 className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}
+                                  style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+                                  {t('ui.resultsPanel.title')}
+                                </h2>
+                                <p className={`mt-2 text-sm md:text-base ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}
+                                  style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                                  {t('ui.resultsPanel.subtitle')}
+                                </p>
+                              </div>
+                              <motion.div
+                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30' : 'bg-teal-600/10 text-teal-700 border border-teal-200'}`}
+                                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                <Activity className="w-4 h-4" /> {t('ui.resultsPanel.last30Days')}
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          {/* Content Area */}
+                          <div className="pl-8">
+                            <section className={`rounded-[2rem] p-6 md:p-8 xl:p-10 ${isDarkMode ? 'bg-slate-800/30' : 'bg-slate-50/50'}`}>
                               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 flex-1">
                                 {/* Stress Load Card */}
                                 <div className={`lg:col-span-5 analytics-glass-card rounded-[2rem] p-6 md:p-8 shadow-sm ${isDarkMode ? 'dark' : ''}`}>
@@ -2604,7 +2910,8 @@ export default function App() {
                                       return (
                                         <div key={`bar-${idx}`} style={{ width: `${pct}%`, backgroundColor: color }}
                                           className="h-full flex items-center justify-center text-[10px] text-white font-bold"
-                                          title={`${getFeatureLabel(item.feature)}: ${Math.round(item.importance)}%`}>
+                                          title={`${getFeatureLabel(item.feature)}: ${Math.round(item.importance)}%`}
+                                        >
                                           {pct > 8 ? Math.round(item.importance) : ''}
                                         </div>
                                       );
@@ -2642,6 +2949,7 @@ export default function App() {
                                   </div>
                                 </div>
                               </div>
+                            </section>
 
                               {/* Prominent Trends */}
                               <div className="max-w-2xl mx-auto w-full mt-4">
@@ -2772,37 +3080,10 @@ export default function App() {
                                   </div>
                                 )}
                               </section>
-                            </>
-                          )}
-
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </section>
-
-
-                    <div className="mt-12 pt-8 border-t border-gray-100/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>{t('results.disclaimer')}</p>
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium ${isDarkMode ? 'bg-green-900/30 text-green-400 border border-green-800/50' : 'bg-green-50 text-green-700'}`}>
-                        <ShieldCheck className="w-4 h-4" />
-                        {t('results.consentConfirmed')}
-                      </div>
-                    </div>
-
-                    <div className="text-center mt-8">
-                      <button
-                        onClick={() => {
-                          setIsSurveyOpen(false);
-                          setIsCompleted(false);
-                          setCurrentStep(1);
-                          setAiResult(null);
-                          setShowAllRecs(false);
-                        }}
-                        className={`font-medium underline underline-offset-4 ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-800'}`}
-                      >
-                        {t('results.btnHome')}
-                      </button>
-                    </div>
-
+                    </motion.div>
                   </div>
                 ) : (
                   <div className="text-center py-12">

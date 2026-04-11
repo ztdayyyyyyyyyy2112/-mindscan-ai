@@ -1,6 +1,5 @@
-export const translations = {
+export const translations: Record<string, any> = {
   vi: {
-    // Nav & Common
     appName: "Mindscan.ai",
     nav: {
       solutions: "Giải pháp",
@@ -101,7 +100,10 @@ export const translations = {
       btnDecline: "Từ chối & Quay lại",
       btnAccept: "Tôi đồng ý & Bắt đầu"
     },
-    // Buttons & Progress
+    motivational: {
+      quote: "Đối với gen Z, hãy cứ chấp nhận việc bản thân cảm thấy “không ổn”. Khi bạn nhận ra bản thân đang như thế nào, bạn đã bước một bước vào hành trình đi tìm lại chính mình, và rồi từng bước một học những bài học cho bản thân. Và bạn yên tâm rằng bạn sẽ không phải bước những bước đi cô độc trên con đường ấy. Đôi khi việc bạn cần làm là dừng lại một chút, thế giới có thể đợi. Nếu cuộc sống giống như việc đạp xe thì chẳng phải lúc xuống dốc là thời điểm con người có thể nghỉ chân và nhìn nhận mọi thứ xung quanh rõ ràng hơn?",
+      next: "Tiếp tục"
+    },
     survey: {
       step: "Bước",
       completed: "Hoàn thành",
@@ -406,7 +408,11 @@ export const translations = {
       h3: "3. ML Limitations",
       p3: "MindScan AI is a preliminary screening tool based on machine learning. Results do not substitute medical diagnoses or professional psychiatric advice.",
       btnDecline: "Decline & Go Back",
-      btnAccept: "I Agree & Start"
+      btnAccept: "I Agree"
+    },
+    motivational: {
+      quote: "For Generation Z, just accept that you're feeling 'not okay'. When you realize how you feel, you've taken a step on your journey to rediscover yourself, and then step by step, learn lessons for yourself. And rest assured that you won't have to take those steps alone on that path. Sometimes what you need to do is pause for a moment; the world can wait. If life is like riding a bicycle, wouldn't the downhill moment be the time when people can rest their feet and see everything around more clearly?",
+      next: "Next"
     },
     survey: {
       step: "Step",
@@ -712,6 +718,10 @@ export const translations = {
       btnDecline: "Refuser & Retour",
       btnAccept: "J'accepte & Commencer"
     },
+    motivational: {
+      quote: "Pour la génération Z, il est normal d'accepter de ne pas se sentir 'bien'. Lorsque vous réalisez comment vous vous sentez, vous avez fait un pas sur le chemin de la redécouverte de vous-même. Soyez assuré que vous n'aurez pas à parcourir ce chemin seul.",
+      next: "Continuer"
+    },
     survey: {
       step: "Etape",
       completed: "Termine",
@@ -1016,6 +1026,10 @@ export const translations = {
       btnDecline: "Ablehnen & Zurück",
       btnAccept: "Zustimmen & Starten"
     },
+    motivational: {
+      quote: "Für die Gen Z ist es okay zu akzeptieren, dass man sich 'nicht okay' fühlt. Wenn du erkennst, wie du dich fühlst, hast du einen Schritt auf der Reise zu dir selbst getan. Sei versichert, dass du diesen Weg nicht alleine gehen musst.",
+      next: "Weiter"
+    },
     survey: {
       step: "Schritt",
       completed: "Abgeschlossen",
@@ -1319,6 +1333,10 @@ export const translations = {
       p3: "MindScan AI 只是一个基于机器学习的初步筛查工具。结果不能代替医学诊断。",
       btnDecline: "拒绝并返回",
       btnAccept: "我同意并开始"
+    },
+    motivational: {
+      quote: "对于 Z 世代来说，接受感到“不适”是可以的。当你意识到自己的感受时，你已经迈出了找回自我旅程的第一步。请放心，在这条路上你并不孤单。",
+      next: "下一步"
     },
     survey: {
       step: "步骤",
