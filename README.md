@@ -206,7 +206,6 @@ Frontend sẽ khả dụng tại: **http://localhost:3000**
 | `POST` | `/api/session`              | Tạo phiên người dùng ẩn danh mới                   |
 | `POST` | `/api/predict?session_id=…` | Gửi dữ liệu khảo sát và nhận kết quả dự đoán stress|
 | `GET`  | `/api/recommend/{pred_id}`  | Lấy danh sách khuyến nghị cho một dự đoán          |
-| `GET`  | `/api/history/{session_id}` | Xem lịch sử dự đoán của một phiên                  |
 
 ### Endpoints dành cho Admin (yêu cầu JWT)
 
