@@ -1,10 +1,10 @@
-# 🧠 Mindscan AI — Hệ thống Khảo sát & Khuyến nghị Sức khỏe Tâm thần Sinh viên
+#  Mindscan AI — Hệ thống Khảo sát & Khuyến nghị Sức khỏe Tâm thần Sinh viên
 
 > Ứng dụng web full-stack sử dụng AI để phân tích mức độ căng thẳng của sinh viên từ dữ liệu khảo sát và đưa ra các khuyến nghị sức khỏe tâm thần được cá nhân hóa.
 
 ---
 
-## 📋 Mục lục
+##  Mục lục
 
 - [Tổng quan](#tổng-quan)
 - [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
@@ -27,11 +27,11 @@ Mindscan AI là nền tảng sức khỏe tâm thần được thiết kế cho 
 
 **Tính năng nổi bật:**
 
-- 🌍 Hỗ trợ đa ngôn ngữ: Tiếng Việt, Tiếng Anh, Tiếng Đức, Tiếng Trung
-- 🔒 Khảo sát hoàn toàn ẩn danh, không thu thập thông tin cá nhân
-- 🤖 Gợi ý AI cá nhân hóa từ Google Gemini API
-- 📊 Trực quan hóa mức độ stress theo thời gian thực
-- 🚨 Cảnh báo khẩn cấp và kết nối tài nguyên hỗ trợ tâm lý
+-  Hỗ trợ đa ngôn ngữ: Tiếng Việt, Tiếng Anh, Tiếng Đức, Tiếng Trung
+-  Khảo sát hoàn toàn ẩn danh, không thu thập thông tin cá nhân
+-  Gợi ý AI cá nhân hóa từ Google Gemini API
+-  Trực quan hóa mức độ stress theo thời gian thực
+-  Cảnh báo khẩn cấp và kết nối tài nguyên hỗ trợ tâm lý
 
 ---
 
@@ -193,7 +193,7 @@ npm run dev
 
 Frontend sẽ khả dụng tại: **http://localhost:3000**
 
-> ⚠️ **Lưu ý:** Đảm bảo backend đang chạy trên cổng `8080` trước khi sử dụng frontend, vì toàn bộ khảo sát và dự đoán đều phụ thuộc vào kết nối backend.
+>  **Lưu ý:** Đảm bảo backend đang chạy trên cổng `8080` trước khi sử dụng frontend, vì toàn bộ khảo sát và dự đoán đều phụ thuộc vào kết nối backend.
 
 ---
 
